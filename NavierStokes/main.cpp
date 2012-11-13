@@ -1,12 +1,17 @@
 #include <iostream>
 
+#ifdef _APPLE_
 #include <OpenGL/OpenGL.h>
+#else
+#include <GL/glew.h>
+#endif
+
 #include <GL/glfw.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-#include "solver.c"
+#include "solver.h"
 
 #include <glm/glm.hpp> //vec3, vec4, ivec4, mat4
 #include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective
@@ -177,7 +182,7 @@ void render() {
 }
 
 std::string file2string(const std::string& filePath) {
-  std::ifstream fileStream(filePath);
+  std::ifstream fileStream(filePath.c_str());
   std::stringstream textStream;
   textStream << fileStream.rdbuf();
   return textStream.str();
@@ -263,19 +268,25 @@ int main(int argc, const char * argv[]) {
       dens[i] = 1.0f;
     }
   }
-  
+
   // Initialise GLFW
   if(!glfwInit()) {
     fprintf( stderr, "Failed to initialize GLFW\n" );
     return EXIT_FAILURE;
   }
-  
+ 
   // Open OpenGL window
   if(!glfwOpenWindow(WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, 0, 0, 0, 0, GLFW_WINDOW)) {
     fprintf(stderr, "Failed to open GLFW window\n");
     glfwTerminate();
     return EXIT_FAILURE;
   }
+
+  GLenum err = glewInit();
+  if (GLEW_OK != err) {
+    fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+  }
+  
   
   glfwSetKeyCallback(keyCallback);
   
