@@ -2,6 +2,12 @@
 
 #ifdef _APPLE_
 #include <OpenGL/OpenGL.h>
+#elif defined _WIN32
+#include <windows.h>
+#define GLEW_STATIC
+#include <GL/glew.h> 
+#include <GL/gl.h> 
+#include <GL/glu.h> 
 #else
 #include <GL/glew.h>
 #endif
@@ -12,6 +18,9 @@
 #include <sstream>
 
 #include "solver.h"
+
+#define _USE_MATH_DEFINES 
+#include <cmath>
 
 #include <glm/glm.hpp> //vec3, vec4, ivec4, mat4
 #include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective
@@ -119,9 +128,9 @@ void drawVelocity() {
 	glBegin (GL_LINES);
   
   for ( i=1 ; i<=N ; i++ ) {
-    x = (i-0.5f)*h;
+    x = (i-0.5f)*h - 0.5;
     for ( j=1 ; j<=N ; j++ ) {
-      y = (j-0.5f)*h;
+      y = (j-0.5f)*h - 0.5;
       
       glVertex2f ( x, y );
       glVertex2f ( x+u[IX(i,j)], y+v[IX(i,j)] );
@@ -190,14 +199,14 @@ std::string file2string(const std::string& filePath) {
 
 void printLog(GLuint obj) {
 	int infologLength = 0;
-	int maxLength;
-  
-	if(glIsShader(obj)) {
-		glGetShaderiv(obj,GL_INFO_LOG_LENGTH,&maxLength);
-  }
-	else {
-		glGetProgramiv(obj,GL_INFO_LOG_LENGTH,&maxLength);
-  }
+	const int maxLength = 256;
+//   
+// 	if(glIsShader(obj)) {
+// 		glGetShaderiv(obj,GL_INFO_LOG_LENGTH,&maxLength);
+//   }
+// 	else {
+// 		glGetProgramiv(obj,GL_INFO_LOG_LENGTH,&maxLength);
+//   }
   
 	char infoLog[maxLength];
   
@@ -255,16 +264,28 @@ int main(int argc, const char * argv[]) {
   int size = (N+2)*(N+2);//*(N+2); // cube
   
 	u = (float *)malloc(size*sizeof(float));
+	memset(u, 0, size*sizeof(float));
+
 	v = (float *)malloc(size*sizeof(float));
+	memset(v, 0, size*sizeof(float));
+
+
 	u_prev = (float *)malloc(size*sizeof(float));
+	memset(u_prev, 0, size*sizeof(float));
+
 	v_prev = (float *)malloc(size*sizeof(float));
+	memset(v_prev, 0, size*sizeof(float));
+
 	dens = (float *)malloc(size*sizeof(float));
+	memset(dens, 0, size*sizeof(float));
+
 	dens_prev	= (float *)malloc(size*sizeof(float));
+	memset(dens_prev, 0, size*sizeof(float));
   
   GLboolean running;
   
   for (int i = 0; i < size; i++) {
-    if (i > size / 2.0f) {
+    if (i > (float)size / 2.0f) {
       dens[i] = 1.0f;
     }
   }
