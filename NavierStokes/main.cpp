@@ -43,7 +43,17 @@ static float *color_r_u, *color_r_v, *color_r_u_prev, *color_r_v_prev;
 static float *color_g, *color_g_prev;
 static float *color_g_u, *color_g_v, *color_g_u_prev, *color_g_v_prev;
 
-static bool addGreen = true;
+static float *color_b, *color_b_prev;
+static float *color_b_u, *color_b_v, *color_b_u_prev, *color_b_v_prev;
+
+enum ColorMode {
+  RED,
+  GREEN,
+  BLUE,
+  COLOR_MODE_MAX
+};
+
+static unsigned int colorMode = RED;
 
 static float forward, right, up = 0.0f;
 static float yRotation = 0.0f;
@@ -95,6 +105,7 @@ void input() {
 		u_prev[i] = v_prev[i] = dens_prev[i] = 0.0f;
     color_r_u_prev[i] = color_r_v_prev[i] = color_r_prev[i] = 0.0f;
     color_g_u_prev[i] = color_g_v_prev[i] = color_g_prev[i] = 0.0f;
+    color_b_u_prev[i] = color_b_v_prev[i] = color_b_prev[i] = 0.0f;
 	}
   
   int mx, my;
@@ -102,30 +113,6 @@ void input() {
   i = (int)((mx /(float)WINDOW_WIDTH)*N+1);
   j = (int)(((WINDOW_HEIGHT-my) /(float)WINDOW_HEIGHT)*N+1);
 
-  if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) || glfwGetKey('D')) {
-    dens_prev[IX(i,j)] = source;
-    dens_prev[IX(i+1,j)] = source;
-    dens_prev[IX(i-1,j)] = source;
-    dens_prev[IX(i,j+1)] = source;
-    dens_prev[IX(i,j-1)] = source;
-
-    if (addGreen) {
-      color_g[IX(i, j)] = 1.0f;
-      color_g[IX(i + 1, j)] = 1.0f;
-      color_g[IX(i - 1, j)] = 1.0f;
-      color_g[IX(i, j + 1)] = 1.0f;
-      color_g[IX(i, j - 1)] = 1.0f;
-    }
-
-    if (!addGreen) {
-      color_r[IX(i, j)] = 1.0f;
-      color_r[IX(i + 1, j)] = 1.0f;
-      color_r[IX(i - 1, j)] = 1.0f;
-      color_r[IX(i, j + 1)] = 1.0f;
-      color_r[IX(i, j - 1)] = 1.0f;
-    }
-  }
-  
   if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) || glfwGetKey('V')) {
     u[IX(i,j)] = force * (mx-omx);
     v[IX(i,j)] = force * (omy-my);
@@ -135,6 +122,42 @@ void input() {
 
     color_g_u[IX(i,j)] = force * (mx-omx);
     color_g_v[IX(i,j)] = force * (omy-my);
+
+    color_b_u[IX(i,j)] = force * (mx-omx);
+    color_b_v[IX(i,j)] = force * (omy-my);
+  //}
+  
+
+  //if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) || glfwGetKey('D')) {
+    dens_prev[IX(i,j)] = source;
+    dens_prev[IX(i+1,j)] = source;
+    dens_prev[IX(i-1,j)] = source;
+    dens_prev[IX(i,j+1)] = source;
+    dens_prev[IX(i,j-1)] = source;
+
+    if (colorMode == RED) {
+      color_r[IX(i, j)] = 1.0f;
+      color_r[IX(i + 1, j)] = 1.0f;
+      color_r[IX(i - 1, j)] = 1.0f;
+      color_r[IX(i, j + 1)] = 1.0f;
+      color_r[IX(i, j - 1)] = 1.0f;
+    }
+
+    if (colorMode == GREEN) {
+      color_g[IX(i, j)] = 1.0f;
+      color_g[IX(i + 1, j)] = 1.0f;
+      color_g[IX(i - 1, j)] = 1.0f;
+      color_g[IX(i, j + 1)] = 1.0f;
+      color_g[IX(i, j - 1)] = 1.0f;
+    }
+
+    if (colorMode == BLUE) {
+      color_b[IX(i, j)] = 1.0f;
+      color_b[IX(i + 1, j)] = 1.0f;
+      color_b[IX(i - 1, j)] = 1.0f;
+      color_b[IX(i, j + 1)] = 1.0f;
+      color_b[IX(i, j - 1)] = 1.0f;
+    }
   }
     
   omx = mx;
@@ -150,6 +173,9 @@ void update() {
 
   vel_step(N, color_g_u, color_g_v, color_g_u_prev, color_g_v_prev, visc, dt);
   dens_step(N, color_g, color_g_prev, color_g_u, color_g_v, diff, dt);
+
+  vel_step(N, color_b_u, color_b_v, color_b_u_prev, color_b_v_prev, visc, dt);
+  dens_step(N, color_b, color_b_prev, color_b_u, color_b_v, diff, dt);
 }
 
 void drawVelocity() {
@@ -191,25 +217,29 @@ void drawDensity() {
       float d00 = dens[i00];
       float c00r = color_r[i00];
       float c00g = color_g[i00];
-      glColor4f(c00r, c00g, 0.0f, d00); glVertex2f(x, y);
+      float c00b = color_b[i00];
+      glColor4f(c00r, c00g, c00b, 1.0f); glVertex2f(x, y);
       
       int i10 = IX(i + 1, j);
       float d10 = dens[i10];
       float c10r = color_r[i10];
       float c10g = color_g[i10];
-      glColor4f(c10r, c10g, 0.0f, d10); glVertex2f(x + h, y);
+      float c10b = color_b[i10];
+      glColor4f(c10r, c10g, c10b, 1.0f); glVertex2f(x + h, y);
       
       int i11 = IX(i + 1, j + 1);
       float d11 = dens[i11];
       float c11r = color_r[i11];
       float c11g = color_g[i11];
-      glColor4f(c11r, c11g, 0.0f, d11); glVertex2f(x + h, y + h);      
+      float c11b = color_b[i11];
+      glColor4f(c11r, c11g, c11b, 1.0f); glVertex2f(x + h, y + h);      
 
       int i01 = IX(i, j + 1);
       float d01 = dens[i01];
       float c01r = color_r[i01];
       float c01g = color_g[i01];
-      glColor4f(c01r, c01g, 0.0f, d01); glVertex2f(x, y + h);
+      float c01b = color_b[i01];
+      glColor4f(c01r, c01g, c01b, 1.0f); glVertex2f(x, y + h);
     }
   }
 	glEnd ();
@@ -277,7 +307,10 @@ void keyCallback(int keyCode, int action) {
     drawingDensity = !drawingDensity;
   }
   if (keyCode == 'B' && action == GLFW_PRESS) {
-    addGreen = !addGreen;
+    colorMode++;
+    if (colorMode == COLOR_MODE_MAX) {
+      colorMode = 0;
+    }
   }
   if (keyCode == 'C' && action == GLFW_PRESS) {
     drawingDensity = !drawingDensity;
@@ -290,7 +323,7 @@ int main(int argc, const char * argv[]) {
   diff = 0.0f;
   visc = 0.0f;
   force = 0.1f;
-  source = 10.0f;
+  source = 1.0f;
   
   int size = (N+2)*(N+2);//*(N+2); // cube
   
@@ -352,13 +385,35 @@ int main(int argc, const char * argv[]) {
 
   color_g_prev = (float *)malloc(size * sizeof(float));
   memset(color_g_prev, 0, size * sizeof(float));
+
+  //--
+
+  color_b_u = (float *)malloc(size * sizeof(float));
+  memset(color_b_u, 0, size * sizeof(float));
+
+  color_b_v = (float *)malloc(size * sizeof(float));
+  memset(color_b_v, 0, size * sizeof(float));
+
+  color_b_u_prev = (float *)malloc(size * sizeof(float));
+  memset(color_b_u_prev, 0, size * sizeof(float));
+
+  color_b_v_prev = (float *)malloc(size * sizeof(float));
+  memset(color_b_v_prev, 0, size * sizeof(float));
+
+  color_b = (float *)malloc(size * sizeof(float));
+  memset(color_b, 0, size * sizeof(float));
+
+  color_b_prev = (float *)malloc(size * sizeof(float));
+  memset(color_b_prev, 0, size * sizeof(float));
   
   GLboolean running;
   
   for (int i = 0; i < size; i++) {
     //if (i > (float)size / 2.0f) {
-      dens[i] = 0.0f;
-      //color[i] = 0x000000ff;
+      dens[i] = 1.0f;
+      color_r[i] = 126/255.0f;
+      color_g[i] = 11/255.0f;
+      color_b[i] = 128/255.0f;
     //}
   }
 
