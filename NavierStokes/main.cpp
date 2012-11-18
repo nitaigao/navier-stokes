@@ -1,30 +1,29 @@
-#include <iostream>
-
-#ifdef _APPLE_
-#include <OpenGL/OpenGL.h>
-#elif defined _WIN32
-#include <windows.h>
-#define GLEW_STATIC
-#include <GL/glew.h> 
-#include <GL/gl.h> 
-#include <GL/glu.h> 
+#if defined(_APPLE_)
+  #include <OpenGL/OpenGL.h>
+#elif defined(_WIN32)
+  #include <windows.h>
+  
+  #define GLEW_STATIC
+  #include <GL/glew.h> 
+  #include <GL/gl.h> 
+  #include <GL/glu.h> 
 #else
-#include <GL/glew.h>
+  #include <GL/glew.h>
 #endif
+
+#define _USE_MATH_DEFINES 
+#include <cmath>
 
 #include <GL/glfw.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-#include "solver.h"
-
-#define _USE_MATH_DEFINES 
-#include <cmath>
-
 #include <glm/glm.hpp> //vec3, vec4, ivec4, mat4
 #include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective
 #include <glm/gtc/type_ptr.hpp> //value_ptr
+
+#include "solver.h"
 
 static int WINDOW_WIDTH = 800;
 static int WINDOW_HEIGHT = 600;
@@ -37,6 +36,14 @@ static float force, source;
 
 static float *u, *v, *u_prev, *v_prev;
 static float *dens, *dens_prev;
+
+static float *color_r, *color_r_prev;
+static float *color_r_u, *color_r_v, *color_r_u_prev, *color_r_v_prev;
+
+static float *color_g, *color_g_prev;
+static float *color_g_u, *color_g_v, *color_g_u_prev, *color_g_v_prev;
+
+static bool addGreen = true;
 
 static float forward, right, up = 0.0f;
 static float yRotation = 0.0f;
@@ -86,6 +93,8 @@ void input() {
   int i, j, size = (N+2)*(N+2);
   for (int i=0 ; i<size ; i++ ) {
 		u_prev[i] = v_prev[i] = dens_prev[i] = 0.0f;
+    color_r_u_prev[i] = color_r_v_prev[i] = color_r_prev[i] = 0.0f;
+    color_g_u_prev[i] = color_g_v_prev[i] = color_g_prev[i] = 0.0f;
 	}
   
   int mx, my;
@@ -99,41 +108,68 @@ void input() {
     dens_prev[IX(i-1,j)] = source;
     dens_prev[IX(i,j+1)] = source;
     dens_prev[IX(i,j-1)] = source;
+
+    if (addGreen) {
+      color_g[IX(i, j)] = 1.0f;
+      color_g[IX(i + 1, j)] = 1.0f;
+      color_g[IX(i - 1, j)] = 1.0f;
+      color_g[IX(i, j + 1)] = 1.0f;
+      color_g[IX(i, j - 1)] = 1.0f;
+    }
+
+    if (!addGreen) {
+      color_r[IX(i, j)] = 1.0f;
+      color_r[IX(i + 1, j)] = 1.0f;
+      color_r[IX(i - 1, j)] = 1.0f;
+      color_r[IX(i, j + 1)] = 1.0f;
+      color_r[IX(i, j - 1)] = 1.0f;
+    }
   }
   
   if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) || glfwGetKey('V')) {
     u[IX(i,j)] = force * (mx-omx);
     v[IX(i,j)] = force * (omy-my);
+
+    color_r_u[IX(i,j)] = force * (mx-omx);
+    color_r_v[IX(i,j)] = force * (omy-my);
+
+    color_g_u[IX(i,j)] = force * (mx-omx);
+    color_g_v[IX(i,j)] = force * (omy-my);
   }
     
   omx = mx;
 	omy = my;
-  
 }
 
 void update() {
   vel_step(N, u, v, u_prev, v_prev, visc, dt);
 	dens_step(N, dens, dens_prev, u, v, diff, dt);
+  
+  vel_step(N, color_r_u, color_r_v, color_r_u_prev, color_r_v_prev, visc, dt);
+  dens_step(N, color_r, color_r_prev, color_r_u, color_r_v, diff, dt);
+
+  vel_step(N, color_g_u, color_g_v, color_g_u_prev, color_g_v_prev, visc, dt);
+  dens_step(N, color_g, color_g_prev, color_g_u, color_g_v, diff, dt);
 }
 
 void drawVelocity() {
-  int i, j;
-	float x, y, h;
+  float h = 1.0f / N;
   
-	h = 1.0f/N;
-  
-	glColor3f ( 1.0f, 1.0f, 1.0f );
-	glLineWidth ( 1.0f );
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glLineWidth(1.0f);
   
 	glBegin (GL_LINES);
   
-  for ( i=1 ; i<=N ; i++ ) {
-    x = (i-0.5f)*h - 0.5;
-    for ( j=1 ; j<=N ; j++ ) {
-      y = (j-0.5f)*h - 0.5;
+  for (int i = 1; i <= N ; i++) {
+    
+    float x = (i-0.5f)*h - 0.5;
+    
+    for (int j=1; j <= N ; j++) {
+    
+      float y = (j-0.5f)*h - 0.5;
       
-      glVertex2f ( x, y );
-      glVertex2f ( x+u[IX(i,j)], y+v[IX(i,j)] );
+      glVertex2f(x, y);
+      glVertex2f(x+u[IX(i,j)], y+v[IX(i,j)]);
     }
   }
   
@@ -150,27 +186,32 @@ void drawDensity() {
     
     for (int j = 0 ; j <= N ; j++) {
       float y = (j - 0.5f) * h - 0.5;
-      
-//      for (int k = 0; k <= N; k++) {
-//        float z = (k - 0.5f) * h;
-      
-        float d00 = dens[IX(i,j)];
-        float d01 = dens[IX(i,j+1)];
-        float d10 = dens[IX(i+1,j)];
-        float d11 = dens[IX(i+1,j+1)];
-      
-        glColor4f(1.0f, 1.0f, 1.0f, d00); glVertex2f (x, y);
-        glColor4f(1.0f, 1.0f, 1.0f, d10); glVertex2f (x+h, y);
-        glColor4f(1.0f, 1.0f, 1.0f, d11); glVertex2f (x+h, y+h);
-        glColor4f(1.0f, 1.0f, 1.0f, d01); glVertex2f (x, y+h);
-      
 
-        
-//      }
+      int i00 = IX(i, j);
+      float d00 = dens[i00];
+      float c00r = color_r[i00];
+      float c00g = color_g[i00];
+      glColor4f(c00r, c00g, 0.0f, d00); glVertex2f(x, y);
+      
+      int i10 = IX(i + 1, j);
+      float d10 = dens[i10];
+      float c10r = color_r[i10];
+      float c10g = color_g[i10];
+      glColor4f(c10r, c10g, 0.0f, d10); glVertex2f(x + h, y);
+      
+      int i11 = IX(i + 1, j + 1);
+      float d11 = dens[i11];
+      float c11r = color_r[i11];
+      float c11g = color_g[i11];
+      glColor4f(c11r, c11g, 0.0f, d11); glVertex2f(x + h, y + h);      
+
+      int i01 = IX(i, j + 1);
+      float d01 = dens[i01];
+      float c01r = color_r[i01];
+      float c01g = color_g[i01];
+      glColor4f(c01r, c01g, 0.0f, d01); glVertex2f(x, y + h);
     }
   }
-
-  
 	glEnd ();
 }
 
@@ -179,15 +220,6 @@ void render() {
   
   if (drawingDensity) drawDensity();
   else drawVelocity();
-  
-//  glBegin(GL_TRIANGLES);
-//    glVertex3f(-1.0f, -1.0f, 1.0f);
-//    glVertex3f(1.0f, -1.0f, 1.0f);
-//    glVertex3f(-1.0f, 1.0f, 1.0f);
-//    glVertex3f(1.0f, 1.0f, 1.0f);
-//    glVertex3f(-1.0f, 1.0f, 1.0f);
-//    glVertex3f(1.0f, -1.0f, 1.0f);
-//  glEnd();
 }
 
 std::string file2string(const std::string& filePath) {
@@ -200,14 +232,7 @@ std::string file2string(const std::string& filePath) {
 void printLog(GLuint obj) {
 	int infologLength = 0;
 	const int maxLength = 256;
-//   
-// 	if(glIsShader(obj)) {
-// 		glGetShaderiv(obj,GL_INFO_LOG_LENGTH,&maxLength);
-//   }
-// 	else {
-// 		glGetProgramiv(obj,GL_INFO_LOG_LENGTH,&maxLength);
-//   }
-  
+
 	char infoLog[maxLength];
   
 	if (glIsShader(obj)) {
@@ -251,6 +276,12 @@ void keyCallback(int keyCode, int action) {
   if (keyCode == 'V' && action == GLFW_PRESS) {
     drawingDensity = !drawingDensity;
   }
+  if (keyCode == 'B' && action == GLFW_PRESS) {
+    addGreen = !addGreen;
+  }
+  if (keyCode == 'C' && action == GLFW_PRESS) {
+    drawingDensity = !drawingDensity;
+  }
 }
 
 int main(int argc, const char * argv[]) {
@@ -258,36 +289,77 @@ int main(int argc, const char * argv[]) {
   dt = 0.1f;
   diff = 0.0f;
   visc = 0.0f;
-  force = 1.00f;
+  force = 0.1f;
   source = 10.0f;
   
   int size = (N+2)*(N+2);//*(N+2); // cube
   
-	u = (float *)malloc(size*sizeof(float));
-	memset(u, 0, size*sizeof(float));
+	u = (float *)malloc(size * sizeof(float));
+	memset(u, 0, size * sizeof(float));
 
-	v = (float *)malloc(size*sizeof(float));
-	memset(v, 0, size*sizeof(float));
+	v = (float *)malloc(size * sizeof(float));
+	memset(v, 0, size * sizeof(float));
+
+	u_prev = (float *)malloc(size * sizeof(float));
+	memset(u_prev, 0, size * sizeof(float));
+
+	v_prev = (float *)malloc(size * sizeof(float));
+	memset(v_prev, 0, size * sizeof(float));
+
+	dens = (float *)malloc(size * sizeof(float));
+	memset(dens, 0, size * sizeof(float));
+
+	dens_prev	= (float *)malloc(size * sizeof(float));
+	memset(dens_prev, 0, size * sizeof(float));
 
 
-	u_prev = (float *)malloc(size*sizeof(float));
-	memset(u_prev, 0, size*sizeof(float));
+//--
 
-	v_prev = (float *)malloc(size*sizeof(float));
-	memset(v_prev, 0, size*sizeof(float));
+  color_r_u = (float *)malloc(size * sizeof(float));
+  memset(color_r_u, 0, size * sizeof(float));
 
-	dens = (float *)malloc(size*sizeof(float));
-	memset(dens, 0, size*sizeof(float));
+  color_r_v = (float *)malloc(size * sizeof(float));
+  memset(color_r_v, 0, size * sizeof(float));
 
-	dens_prev	= (float *)malloc(size*sizeof(float));
-	memset(dens_prev, 0, size*sizeof(float));
+  color_r_u_prev = (float *)malloc(size * sizeof(float));
+  memset(color_r_u_prev, 0, size * sizeof(float));
+
+  color_r_v_prev = (float *)malloc(size * sizeof(float));
+  memset(color_r_v_prev, 0, size * sizeof(float));
+
+  color_r = (float *)malloc(size * sizeof(float));
+  memset(color_r, 0, size * sizeof(float));
+
+  color_r_prev = (float *)malloc(size * sizeof(float));
+  memset(color_r_prev, 0, size * sizeof(float));
+
+//--
+
+  color_g_u = (float *)malloc(size * sizeof(float));
+  memset(color_g_u, 0, size * sizeof(float));
+
+  color_g_v = (float *)malloc(size * sizeof(float));
+  memset(color_g_v, 0, size * sizeof(float));
+
+  color_g_u_prev = (float *)malloc(size * sizeof(float));
+  memset(color_g_u_prev, 0, size * sizeof(float));
+
+  color_g_v_prev = (float *)malloc(size * sizeof(float));
+  memset(color_g_v_prev, 0, size * sizeof(float));
+
+  color_g = (float *)malloc(size * sizeof(float));
+  memset(color_g, 0, size * sizeof(float));
+
+  color_g_prev = (float *)malloc(size * sizeof(float));
+  memset(color_g_prev, 0, size * sizeof(float));
   
   GLboolean running;
   
   for (int i = 0; i < size; i++) {
-    if (i > (float)size / 2.0f) {
-      dens[i] = 1.0f;
-    }
+    //if (i > (float)size / 2.0f) {
+      dens[i] = 0.0f;
+      //color[i] = 0x000000ff;
+    //}
   }
 
   // Initialise GLFW
@@ -329,7 +401,7 @@ int main(int argc, const char * argv[]) {
     input();
     update();
     
-    glClearColor(1, 0, 0, 1);
+    glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
     
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);

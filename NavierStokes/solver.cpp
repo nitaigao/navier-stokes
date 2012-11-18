@@ -13,9 +13,9 @@ void set_bnd(int N, int b, float* x) {
 		x[IX(i,   N + 1)] = b == 2 ? -x[IX(i, N)] : x[IX(i, N)];
 	}
   
-	x[IX(0,        0)]  = 0.5f * (x[IX(1, 0 )]    + x[IX(0,     1)]);
+	x[IX(0,         0)] = 0.5f * (x[IX(1, 0 )]    + x[IX(0,     1)]);
 	x[IX(0,     N + 1)] = 0.5f * (x[IX(1, N + 1)] + x[IX(0,     N)]);
-	x[IX(N + 1,   0 )]  = 0.5f * (x[IX(N, 0 )]    + x[IX(N + 1, 1)]);
+	x[IX(N + 1,     0)] = 0.5f * (x[IX(N, 0 )]    + x[IX(N + 1, 1)]);
 	x[IX(N + 1, N + 1)] = 0.5f * (x[IX(N, N + 1)] + x[IX(N + 1, N)]);
 }
 
@@ -76,8 +76,7 @@ void advect(int N, int b, float* d, float* d0, float* u, float* v, float dt) {
 	set_bnd(N, b, d);
 }
 
-void project(int N, float* u, float* v, float* p, float* div)
-{
+void project(int N, float* u, float* v, float* p, float* div) {
   for (int i = 1 ; i <= N; i++) {
     for (int j = 1 ; j <= N; j++) {
       div[IX(i,j)] = -0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)]-v[IX(i, j - 1)]) / N;
