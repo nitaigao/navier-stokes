@@ -14,6 +14,8 @@
 #define _USE_MATH_DEFINES 
 #include <cmath>
 
+#include <FreeImage.h>
+
 #include <GL/glfw.h>
 #include <fstream>
 #include <iostream>
@@ -25,12 +27,13 @@
 
 #include "solver.h"
 
-static int WINDOW_WIDTH = 800;
-static int WINDOW_HEIGHT = 600;
+static int WINDOW_WIDTH = 1280;
+static int WINDOW_HEIGHT = 800;
 
 static bool drawingDensity = true;
 
-static int N;
+static int NW;
+static int NH;
 static float dt, diff, visc;
 static float force, source;
 
@@ -59,6 +62,23 @@ static float forward, right, up = 0.0f;
 static float yRotation = 0.0f;
 
 int omx, omy;
+
+void addDensity(float* density, int i, int j, float source)
+{
+	density[IX(i - 1, j)] = source;
+
+	density[IX(i - 1, j - 1)] = source;
+	density[IX(i, j - 1)] = source;
+	density[IX(i + 1, j - 1)] = source;
+
+	density[IX(i + 1, j)] = source;
+
+	density[IX(i + 1, j + 1)] = source;
+	density[IX(i, j + 1)] = source;
+	density[IX(i - 1, j + 1)] = source;
+
+	density[IX(i, j)] = source; 
+}
 
 void input() {
   
@@ -97,21 +117,31 @@ void input() {
   if (glfwGetKey(GLFW_KEY_RIGHT)) {
     yRotation += speed * dt * dt;
   }
+
+	unsigned int size = (NW+2)*(NH+2);
+
+	memset(dens_prev, 0, sizeof(float) * size);
+	memset(v_prev, 0, sizeof(float) * size);
+	memset(u_prev, 0, sizeof(float) * size);
+
+	memset(color_r_prev, 0, sizeof(float) * size);
+	memset(color_r_u_prev, 0, sizeof(float) * size);
+	memset(color_r_v_prev, 0, sizeof(float) * size);
+
+	memset(color_b_prev, 0, sizeof(float) * size);
+	memset(color_b_u_prev, 0, sizeof(float) * size);
+	memset(color_b_v_prev, 0, sizeof(float) * size);
+
+	memset(color_g_prev, 0, sizeof(float) * size);
+	memset(color_g_u_prev, 0, sizeof(float) * size);
+	memset(color_g_v_prev, 0, sizeof(float) * size);
   
   // mouse
-
-  int i, j, size = (N+2)*(N+2);
-  for (int i=0 ; i<size ; i++ ) {
-		u_prev[i] = v_prev[i] = dens_prev[i] = 0.0f;
-    color_r_u_prev[i] = color_r_v_prev[i] = color_r_prev[i] = 0.0f;
-    color_g_u_prev[i] = color_g_v_prev[i] = color_g_prev[i] = 0.0f;
-    color_b_u_prev[i] = color_b_v_prev[i] = color_b_prev[i] = 0.0f;
-	}
-  
-  int mx, my;
+	
+  int mx, my; 
   glfwGetMousePos(&mx, &my);
-  i = (int)((mx /(float)WINDOW_WIDTH)*N+1);
-  j = (int)(((WINDOW_HEIGHT-my) /(float)WINDOW_HEIGHT)*N+1);
+  int i = (int)((mx /(float)WINDOW_WIDTH)*NW+1);
+  int j = (int)(((WINDOW_HEIGHT-my) /(float)WINDOW_HEIGHT)*NH+1);
 
   if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) || glfwGetKey('V')) {
     u[IX(i,j)] = force * (mx-omx);
@@ -125,38 +155,23 @@ void input() {
 
     color_b_u[IX(i,j)] = force * (mx-omx);
     color_b_v[IX(i,j)] = force * (omy-my);
-  //}
+  }
   
 
-  //if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) || glfwGetKey('D')) {
-    dens_prev[IX(i,j)] = source;
-    dens_prev[IX(i+1,j)] = source;
-    dens_prev[IX(i-1,j)] = source;
-    dens_prev[IX(i,j+1)] = source;
-    dens_prev[IX(i,j-1)] = source;
+  if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) || glfwGetKey('D')) {
+
+		addDensity(dens_prev, i, j, source);
 
     if (colorMode == RED) {
-      color_r[IX(i, j)] = 1.0f;
-      color_r[IX(i + 1, j)] = 1.0f;
-      color_r[IX(i - 1, j)] = 1.0f;
-      color_r[IX(i, j + 1)] = 1.0f;
-      color_r[IX(i, j - 1)] = 1.0f;
+			addDensity(color_r_prev, i, j, source);     
     }
 
     if (colorMode == GREEN) {
-      color_g[IX(i, j)] = 1.0f;
-      color_g[IX(i + 1, j)] = 1.0f;
-      color_g[IX(i - 1, j)] = 1.0f;
-      color_g[IX(i, j + 1)] = 1.0f;
-      color_g[IX(i, j - 1)] = 1.0f;
+      addDensity(color_g_prev, i, j, source);     
     }
 
     if (colorMode == BLUE) {
-      color_b[IX(i, j)] = 1.0f;
-      color_b[IX(i + 1, j)] = 1.0f;
-      color_b[IX(i - 1, j)] = 1.0f;
-      color_b[IX(i, j + 1)] = 1.0f;
-      color_b[IX(i, j - 1)] = 1.0f;
+      addDensity(color_b_prev, i, j, source);     
     }
   }
     
@@ -165,34 +180,32 @@ void input() {
 }
 
 void update() {
-  vel_step(N, u, v, u_prev, v_prev, visc, dt);
-	dens_step(N, dens, dens_prev, u, v, diff, dt);
-  
-  vel_step(N, color_r_u, color_r_v, color_r_u_prev, color_r_v_prev, visc, dt);
-  dens_step(N, color_r, color_r_prev, color_r_u, color_r_v, diff, dt);
+  stepVelocity(NW, NH, color_r_u, color_r_v, color_r_u_prev, color_r_v_prev, visc, dt);
+  stepDensity(NW, NH, color_r, color_r_prev, color_r_u, color_r_v, diff, dt);
 
-  vel_step(N, color_g_u, color_g_v, color_g_u_prev, color_g_v_prev, visc, dt);
-  dens_step(N, color_g, color_g_prev, color_g_u, color_g_v, diff, dt);
+  stepVelocity(NW, NH, color_g_u, color_g_v, color_g_u_prev, color_g_v_prev, visc, dt);
+  stepDensity(NW, NH, color_g, color_g_prev, color_g_u, color_g_v, diff, dt);
 
-  vel_step(N, color_b_u, color_b_v, color_b_u_prev, color_b_v_prev, visc, dt);
-  dens_step(N, color_b, color_b_prev, color_b_u, color_b_v, diff, dt);
+  stepVelocity(NW, NH, color_b_u, color_b_v, color_b_u_prev, color_b_v_prev, visc, dt);
+  stepDensity(NW, NH, color_b, color_b_prev, color_b_u, color_b_v, diff, dt);
 }
 
 void drawVelocity() {
-  float h = 1.0f / N;
+  float hw = 1.0f / NW;
+	float hh = 1.0f / NH;
   
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glLineWidth(1.0f);
   
 	glBegin (GL_LINES);
   
-  for (int i = 1; i <= N ; i++) {
+  for (int i = 1; i <= NW ; i++) {
     
-    float x = (i-0.5f)*h - 0.5;
+    float x = (i-0.5f) * hw - 0.5;
     
-    for (int j=1; j <= N ; j++) {
-    
-      float y = (j-0.5f)*h - 0.5;
+    for (int j=1; j <= NH ; j++) {
+ 
+      float y = (j-0.5f)* hh - 0.5;
       
       glVertex2f(x, y);
       glVertex2f(x+u[IX(i,j)], y+v[IX(i,j)]);
@@ -202,44 +215,33 @@ void drawVelocity() {
 	glEnd ();
 }
 
+void drawDensityComponent(int index, float x, float y) 
+{	
+	float d = dens[index];
+	float cr = color_r[index];
+	float cg = color_g[index];
+	float cb = color_b[index];
+	glColor4f(cr, cg, cb, 1.0f); 
+	glVertex2f(x, y);
+}
+
+
 void drawDensity() {
-  float h = 1.0f/N;
+
+  float hw = 1.0f/NW;
+	float hh = 1.0f/NH;
   
 	glBegin (GL_QUADS);
   
-  for (int i = 0 ; i <= N ; i++) {
-    float x = (i - 0.5f) * h - 0.5;
+  for (int i = 0 ; i <= NW ; i++) {
+    float x = (i - 0.5f) * hw - 0.5;
     
-    for (int j = 0 ; j <= N ; j++) {
-      float y = (j - 0.5f) * h - 0.5;
-
-      int i00 = IX(i, j);
-      float d00 = dens[i00];
-      float c00r = color_r[i00];
-      float c00g = color_g[i00];
-      float c00b = color_b[i00];
-      glColor4f(c00r, c00g, c00b, 1.0f); glVertex2f(x, y);
-      
-      int i10 = IX(i + 1, j);
-      float d10 = dens[i10];
-      float c10r = color_r[i10];
-      float c10g = color_g[i10];
-      float c10b = color_b[i10];
-      glColor4f(c10r, c10g, c10b, 1.0f); glVertex2f(x + h, y);
-      
-      int i11 = IX(i + 1, j + 1);
-      float d11 = dens[i11];
-      float c11r = color_r[i11];
-      float c11g = color_g[i11];
-      float c11b = color_b[i11];
-      glColor4f(c11r, c11g, c11b, 1.0f); glVertex2f(x + h, y + h);      
-
-      int i01 = IX(i, j + 1);
-      float d01 = dens[i01];
-      float c01r = color_r[i01];
-      float c01g = color_g[i01];
-      float c01b = color_b[i01];
-      glColor4f(c01r, c01g, c01b, 1.0f); glVertex2f(x, y + h);
+    for (int j = 0 ; j <= NH ; j++) {
+      float y = (j - 0.5f) * hh - 0.5;
+			drawDensityComponent(IX(i, j), x, y);
+			drawDensityComponent(IX(i + 1, j), x + hw, y);
+			drawDensityComponent(IX(i + 1, j + 1), x + hw , y + hh);
+			drawDensityComponent(IX(i, j + 1), x, y + hh);
     }
   }
 	glEnd ();
@@ -306,26 +308,74 @@ void keyCallback(int keyCode, int action) {
   if (keyCode == 'V' && action == GLFW_PRESS) {
     drawingDensity = !drawingDensity;
   }
+
   if (keyCode == 'B' && action == GLFW_PRESS) {
     colorMode++;
     if (colorMode == COLOR_MODE_MAX) {
       colorMode = 0;
     }
   }
+
   if (keyCode == 'C' && action == GLFW_PRESS) {
     drawingDensity = !drawingDensity;
   }
 }
 
+BYTE* LoadTexture(const char* filename, unsigned int* width, unsigned int* height, unsigned int *bpp) {
+	FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(filename, 0);
+	
+	if(fif == FIF_UNKNOWN) { 
+		fif = FreeImage_GetFIFFromFilename(filename);
+	}
+	
+	if(fif == FIF_UNKNOWN) {
+		return 0;
+	}
+
+	
+	FIBITMAP *dib = 0;
+	if(FreeImage_FIFSupportsReading(fif)) {
+		dib = FreeImage_Load(fif, filename);
+	}
+
+	if(!dib) {
+		return 0;
+	}
+
+	//dib = FreeImage_ConvertTo24Bits(dib);
+
+	unsigned int pitch = FreeImage_GetPitch(dib);
+
+	*bpp = FreeImage_GetBPP(dib);
+
+	FIBITMAP* scaled = FreeImage_Rescale(dib, NW+2, NH+2, FILTER_BILINEAR);
+
+	BYTE* bits = (BYTE*)FreeImage_GetBits(scaled);
+
+	*width = FreeImage_GetWidth(scaled);
+	*height = FreeImage_GetHeight(scaled);
+
+	if((bits == 0) || (width == 0) || (height == 0)) {
+		return 0;
+	}
+
+	FreeImage_Unload(dib);
+
+	return bits;
+}
+
+
 int main(int argc, const char * argv[]) {
-  N = 64;
-  dt = 0.1f;
+
+	NW = 200;
+	NH = 200;
+  dt = 0.2f;
   diff = 0.0f;
-  visc = 0.0f;
-  force = 0.1f;
-  source = 1.0f;
+  visc = 0.00001f;
+  force = 0.8f;
+  source = 3.0f;
   
-  int size = (N+2)*(N+2);//*(N+2); // cube
+  int size = (NW+2)*(NH+2);//*(N+2); // cube
   
 	u = (float *)malloc(size * sizeof(float));
 	memset(u, 0, size * sizeof(float));
@@ -407,17 +457,40 @@ int main(int argc, const char * argv[]) {
   memset(color_b_prev, 0, size * sizeof(float));
   
   GLboolean running;
-  
-  for (int i = 0; i < size; i++) {
-    //if (i > (float)size / 2.0f) {
-      dens[i] = 1.0f;
-      color_r[i] = 126/255.0f;
-      color_g[i] = 11/255.0f;
-      color_b[i] = 128/255.0f;
-    //}
+
+	FreeImage_Initialise(true);
+
+	unsigned int width, height, bpp = 0;
+	BYTE* imageData = LoadTexture(argv[1], &width, &height, &bpp);
+
+  for (unsigned int i = 0; i < size; i++) {
+		//dens[i] = 1.0f;
+
+		int components = bpp / 8.0f;
+		BYTE b = imageData[0+(i*components)];
+		BYTE g = imageData[1+(i*components)];
+		BYTE r = imageData[2+(i*components)];
+		//BYTE a = imageData[3+(i*components)];
+
+		if (!(i % (NW + 2))) {
+			//printf("\n", r);
+		}
+
+		//printf("%03u ", r);
+		
+		color_r[i] = r / 255.0f;
+		color_g[i] = g / 255.0f;
+		color_b[i] = b / 255.0f;
+
+//     if (i < (float)size / 2.0f) {
+//       
+//       color_r[i] = 126/255.0f;
+//       color_g[i] = 11/255.0f;
+//       color_b[i] = 128/255.0f;
+//     }
   }
 
-  // Initialise GLFW
+  // Initialize GLFW
   if(!glfwInit()) {
     fprintf( stderr, "Failed to initialize GLFW\n" );
     return EXIT_FAILURE;

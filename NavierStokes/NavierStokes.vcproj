@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\;&quot;..\glew-1.9.0\include&quot;;&quot;..\glfw-2.7.7.bin.WIN32\include&quot;"
+				AdditionalIncludeDirectories="..\;&quot;..\glew-1.9.0\include&quot;;&quot;..\glfw-2.7.7.bin.WIN32\include&quot;;..\FreeImage\Dist"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -58,8 +58,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="glew32s.lib GLFW.lib opengl32.lib"
-				AdditionalLibraryDirectories="..\glfw-2.7.7.bin.WIN32\lib-msvc90;..\glew-1.9.0\lib"
+				AdditionalDependencies="glew32s.lib GLFW.lib opengl32.lib FreeImage.lib"
+				AdditionalLibraryDirectories="&quot;..\glfw-2.7.7.bin.WIN32\lib-msvc90&quot;;&quot;..\glew-1.9.0\lib&quot;;..\FreeImage\Dist"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -111,10 +111,15 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="3"
 				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				AdditionalIncludeDirectories="..\;&quot;..\glew-1.9.0\include&quot;;&quot;..\glfw-2.7.7.bin.WIN32\include&quot;;..\FreeImage\Dist"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
+				FloatingPointModel="2"
+				RuntimeTypeInfo="false"
+				OpenMP="true"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -129,6 +134,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="glew32s.lib GLFW.lib opengl32.lib FreeImage.lib"
+				AdditionalLibraryDirectories="&quot;..\glfw-2.7.7.bin.WIN32\lib-msvc90&quot;;&quot;..\glew-1.9.0\lib&quot;;..\FreeImage\Dist"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
