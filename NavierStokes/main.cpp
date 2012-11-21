@@ -248,7 +248,7 @@ void drawDensity() {
      }
    }
 
-  //glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
   glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * colorSize, colorVertexArray);
 
   glDrawArrays(GL_QUADS, 0, vertexSize);
