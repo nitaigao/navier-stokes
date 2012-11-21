@@ -1,2 +1,2 @@
 all:
-	clang++ -I. NavierStokes/*.cpp -lglfw -lGLEW -lGL -o navier-stokes
+	clang++ -I. -O3 NavierStokes/*.cpp -g -lglfw -lGLEW -lGL -lfreeimage -o navier-stokes

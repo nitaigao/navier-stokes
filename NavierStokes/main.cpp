@@ -49,6 +49,14 @@ static float *color_g_u, *color_g_v, *color_g_u_prev, *color_g_v_prev;
 static float *color_b, *color_b_prev;
 static float *color_b_u, *color_b_v, *color_b_u_prev, *color_b_v_prev;
 
+static GLuint gridVAO = 0;
+
+static GLuint colorVBO = 0;
+
+static float* colorVertexArray = 0;
+static unsigned int vertexSize = 0;
+static unsigned int colorSize = 0;
+
 enum ColorMode {
   RED,
   GREEN,
@@ -215,36 +223,35 @@ void drawVelocity() {
 	glEnd ();
 }
 
-void drawDensityComponent(int index, float x, float y) 
+void drawDensityComponent(int index, unsigned int& colorIndex) 
 {	
-	float d = dens[index];
 	float cr = color_r[index];
 	float cg = color_g[index];
 	float cb = color_b[index];
-	glColor4f(cr, cg, cb, 1.0f); 
-	glVertex2f(x, y);
+
+  colorVertexArray[colorIndex++] = cr;
+  colorVertexArray[colorIndex++] = cg;
+  colorVertexArray[colorIndex++] = cb;
+  colorVertexArray[colorIndex++] = 1.0f;
 }
 
 
 void drawDensity() {
+  unsigned int colorIndex = 0;
 
-  float hw = 1.0f/NW;
-	float hh = 1.0f/NH;
-  
-	glBegin (GL_QUADS);
-  
-  for (int i = 0 ; i <= NW ; i++) {
-    float x = (i - 0.5f) * hw - 0.5;
-    
-    for (int j = 0 ; j <= NH ; j++) {
-      float y = (j - 0.5f) * hh - 0.5;
-			drawDensityComponent(IX(i, j), x, y);
-			drawDensityComponent(IX(i + 1, j), x + hw, y);
-			drawDensityComponent(IX(i + 1, j + 1), x + hw , y + hh);
-			drawDensityComponent(IX(i, j + 1), x, y + hh);
-    }
-  }
-	glEnd ();
+  for (int i = 0 ; i < NW ; i++) {
+   for (int j = 0 ; j < NH ; j++) {
+  		drawDensityComponent(IX(i, j), colorIndex);
+  		drawDensityComponent(IX(i + 1, j), colorIndex);
+  		drawDensityComponent(IX(i + 1, j + 1), colorIndex);
+  		drawDensityComponent(IX(i, j + 1), colorIndex);
+     }
+   }
+
+  //glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * colorSize, colorVertexArray);
+
+  glDrawArrays(GL_QUADS, 0, vertexSize);
 }
 
 void render() {
@@ -297,6 +304,9 @@ GLuint createShaderProgram() {
   GLuint shaderProgram = glCreateProgram();
   glAttachShader(shaderProgram, vertexShader);
   glAttachShader(shaderProgram, fragmentShader);
+
+  glBindAttribLocation(shaderProgram, 0, "position");
+
   glLinkProgram(shaderProgram);
   
   printLog(shaderProgram);
@@ -367,8 +377,10 @@ BYTE* LoadTexture(const char* filename, unsigned int* width, unsigned int* heigh
 
 int main(int argc, const char * argv[]) {
 
-	NW = 200;
-	NH = 200;
+  int gridSize = 200;
+
+	NW = gridSize;
+	NH = gridSize;
   dt = 0.2f;
   diff = 0.0f;
   visc = 0.00001f;
@@ -461,6 +473,7 @@ int main(int argc, const char * argv[]) {
 	FreeImage_Initialise(true);
 
 	unsigned int width, height, bpp = 0;
+  printf("%s\n", argv[1]);
 	BYTE* imageData = LoadTexture(argv[1], &width, &height, &bpp);
 
   for (unsigned int i = 0; i < size; i++) {
@@ -471,12 +484,6 @@ int main(int argc, const char * argv[]) {
 		BYTE g = imageData[1+(i*components)];
 		BYTE r = imageData[2+(i*components)];
 		//BYTE a = imageData[3+(i*components)];
-
-		if (!(i % (NW + 2))) {
-			//printf("\n", r);
-		}
-
-		//printf("%03u ", r);
 		
 		color_r[i] = r / 255.0f;
 		color_g[i] = g / 255.0f;
@@ -513,10 +520,94 @@ int main(int argc, const char * argv[]) {
   
   glfwSetWindowTitle("Navier Stokes");
   
-  // Enable vertical sync (on cards that support it)
   glfwSwapInterval(1);
   
   GLuint shaderProgram = createShaderProgram();
+
+  vertexSize = NW * NH * 2 * 4;
+
+  float* positionVertexArray = (float *)malloc(vertexSize * sizeof(float));
+  memset(positionVertexArray, 0, vertexSize * sizeof(float));
+
+  float hw = 1.0f / NW;
+  float hh = 1.0f / NH;
+
+  unsigned int vertexIndex = 0;
+
+  for (float i = 0 ; i < NW ; i++) {
+    float x = (i - 0.5f) * hw - 0.5;
+    
+    for (float j = 0 ; j < NH ; j++) {
+      float y = (j - 0.5f) * hh - 0.5;
+
+      positionVertexArray[vertexIndex++] = x;
+      positionVertexArray[vertexIndex++] = y;
+
+      positionVertexArray[vertexIndex++] = x + hw;
+      positionVertexArray[vertexIndex++] = y;
+
+      positionVertexArray[vertexIndex++] = x + hw;
+      positionVertexArray[vertexIndex++] = y + hh;
+
+      positionVertexArray[vertexIndex++] = x;
+      positionVertexArray[vertexIndex++] = y + hh;
+    }
+  }
+
+  glGenVertexArrays(1, &gridVAO);
+  glBindVertexArray(gridVAO);
+
+  GLuint positionVBO = 0;
+  glGenBuffers(1, &positionVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexSize, positionVertexArray, GL_STATIC_DRAW);
+
+  glVertexAttribPointer(0, 2, GL_FLOAT, 0, 0, 0);
+  glEnableVertexAttribArray(0);
+
+  // this should become a texture read later on
+  colorSize = NW * NH * 4 * 4;
+
+  colorVertexArray = (float *)malloc(colorSize * sizeof(float));
+  memset(colorVertexArray, 0, colorSize * sizeof(float));
+
+  unsigned int colorIndex = 0;
+
+    for (float i = 0 ; i < NW ; i++) {
+    float x = (i - 0.5f) * hw - 0.5;
+    
+    for (float j = 0 ; j < NH ; j++) {
+      float y = (j - 0.5f) * hh - 0.5;
+
+      colorVertexArray[colorIndex++] = 0;
+      colorVertexArray[colorIndex++] = 1;
+      colorVertexArray[colorIndex++] = 0;
+      colorVertexArray[colorIndex++] = 1;
+
+      colorVertexArray[colorIndex++] = 0;
+      colorVertexArray[colorIndex++] = 1;
+      colorVertexArray[colorIndex++] = 0;
+      colorVertexArray[colorIndex++] = 1;
+
+      colorVertexArray[colorIndex++] = 0;
+      colorVertexArray[colorIndex++] = 1;
+      colorVertexArray[colorIndex++] = 0;
+      colorVertexArray[colorIndex++] = 1;
+
+      colorVertexArray[colorIndex++] = 0;
+      colorVertexArray[colorIndex++] = 1;
+      colorVertexArray[colorIndex++] = 0;
+      colorVertexArray[colorIndex++] = 1;
+    }
+  }
+
+  colorVBO = 0;
+  glGenBuffers(1, &colorVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * colorSize, colorVertexArray, GL_DYNAMIC_DRAW);
+
+  glVertexAttribPointer(1, 4, GL_FLOAT, 0, 0, 0);
+  glEnableVertexAttribArray(1);
   
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -524,6 +615,7 @@ int main(int argc, const char * argv[]) {
   forward = -1.0f;
   
   running = GL_TRUE;
+
   while (running) {
     
     input();
