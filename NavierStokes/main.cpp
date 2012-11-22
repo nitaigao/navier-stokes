@@ -151,7 +151,7 @@ void input() {
   int i = (int)((mx /(float)WINDOW_WIDTH)*NW+1);
   int j = (int)(((WINDOW_HEIGHT-my) /(float)WINDOW_HEIGHT)*NH+1);
 
-  if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) || glfwGetKey('V')) {
+  if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT)) {
     u[IX(i,j)] = force * (mx-omx);
     v[IX(i,j)] = force * (omy-my);
 
@@ -239,8 +239,8 @@ void drawDensityComponent(int index, unsigned int& colorIndex)
 void drawDensity() {
   unsigned int colorIndex = 0;
 
-  for (int i = 0 ; i < NW ; i++) {
-   for (int j = 0 ; j < NH ; j++) {
+  for (int i = 0 ; i <= NW ; i++) {
+   for (int j = 0 ; j <= NH ; j++) {
   		drawDensityComponent(IX(i, j), colorIndex);
   		drawDensityComponent(IX(i + 1, j), colorIndex);
   		drawDensityComponent(IX(i + 1, j + 1), colorIndex);
@@ -315,8 +315,51 @@ GLuint createShaderProgram() {
 }
 
 void keyCallback(int keyCode, int action) {
-  if (keyCode == 'V' && action == GLFW_PRESS) {
+  if (keyCode == 'M' && action == GLFW_PRESS) {
     drawingDensity = !drawingDensity;
+  }
+
+  if (glfwGetKey('V') && action == GLFW_PRESS) {
+    if (visc == 0.0f) {
+      visc = 0.00001f;
+    } else 
+    if (visc == 0.00001f) {
+      visc = 0.0001f;
+    } else 
+    if (visc == 0.0001f) {
+      visc = 0.001f;
+    } else
+    if (visc == 0.001f) {
+      visc = 0.01f;
+    } else
+    if (visc == 0.01f) {
+      visc = 0.1f;
+    } else
+    if (visc == 0.1f) {
+      visc = 0.0f;
+    }
+
+    printf("viscosity %f\n", visc);
+  }
+
+  if (glfwGetKey('F') && action == GLFW_PRESS) {
+    if (force == 3.0f) {
+      force = 0.01f;
+    } else
+    if (force == 0.01f) {
+      force = 0.1f;
+    } else
+    if (force == 0.1f) {
+      force = 1.0f;
+    } else 
+      if (force == 1.0f) {
+      force = 2.0f;
+    }
+    if (force == 2.0f) {
+      force = 3.0f;
+    }
+
+    printf("force %f\n", force);
   }
 
   if (keyCode == 'B' && action == GLFW_PRESS) {
@@ -383,9 +426,13 @@ int main(int argc, const char * argv[]) {
 	NH = gridSize;
   dt = 0.2f;
   diff = 0.0f;
-  visc = 0.00001f;
-  force = 0.8f;
-  source = 3.0f;
+  visc = 0.0f;//00001f;
+  force = 1.0f;
+  source = 1.0f;
+
+  printf("%s\n", argv[1]);
+  printf("viscosity %f\n", visc);
+  printf("force %f\n", force);
   
   int size = (NW+2)*(NH+2);//*(N+2); // cube
   
@@ -473,7 +520,6 @@ int main(int argc, const char * argv[]) {
 	FreeImage_Initialise(true);
 
 	unsigned int width, height, bpp = 0;
-  printf("%s\n", argv[1]);
 	BYTE* imageData = LoadTexture(argv[1], &width, &height, &bpp);
 
   for (unsigned int i = 0; i < size; i++) {
@@ -524,7 +570,7 @@ int main(int argc, const char * argv[]) {
   
   GLuint shaderProgram = createShaderProgram();
 
-  vertexSize = NW * NH * 2 * 4;
+  vertexSize = (NW + 1) * (NH + 1) * 2 * 4;
 
   float* positionVertexArray = (float *)malloc(vertexSize * sizeof(float));
   memset(positionVertexArray, 0, vertexSize * sizeof(float));
@@ -534,10 +580,10 @@ int main(int argc, const char * argv[]) {
 
   unsigned int vertexIndex = 0;
 
-  for (float i = 0 ; i < NW ; i++) {
+  for (float i = 0 ; i <= NW ; i++) {
     float x = (i - 0.5f) * hw - 0.5;
     
-    for (float j = 0 ; j < NH ; j++) {
+    for (float j = 0 ; j <= NH ; j++) {
       float y = (j - 0.5f) * hh - 0.5;
 
       positionVertexArray[vertexIndex++] = x;
@@ -566,17 +612,17 @@ int main(int argc, const char * argv[]) {
   glEnableVertexAttribArray(0);
 
   // this should become a texture read later on
-  colorSize = NW * NH * 4 * 4;
+  colorSize = (NW + 1) * (NH + 1) * 4 * 4;
 
   colorVertexArray = (float *)malloc(colorSize * sizeof(float));
   memset(colorVertexArray, 0, colorSize * sizeof(float));
 
   unsigned int colorIndex = 0;
 
-    for (float i = 0 ; i < NW ; i++) {
+    for (float i = 0 ; i <= NW ; i++) {
     float x = (i - 0.5f) * hw - 0.5;
     
-    for (float j = 0 ; j < NH ; j++) {
+    for (float j = 0 ; j <= NH ; j++) {
       float y = (j - 0.5f) * hh - 0.5;
 
       colorVertexArray[colorIndex++] = 0;
