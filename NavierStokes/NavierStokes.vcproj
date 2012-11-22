@@ -136,6 +136,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="glew32s.lib GLFW.lib opengl32.lib FreeImage.lib"
 				AdditionalLibraryDirectories="&quot;..\glfw-2.7.7.bin.WIN32\lib-msvc90&quot;;&quot;..\glew-1.9.0\lib&quot;;..\FreeImage\Dist"
+				UACExecutionLevel="1"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"

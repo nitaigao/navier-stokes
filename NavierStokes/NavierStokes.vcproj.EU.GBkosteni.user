@@ -39,7 +39,7 @@
 			<DebugSettings
 				Command="$(TargetPath)"
 				WorkingDirectory="C:\cygwin\home\GBkosteni\Development\navier-stokes"
-				CommandArguments="smile.png"
+				CommandArguments=""
 				Attach="false"
 				DebuggerType="3"
 				Remote="1"

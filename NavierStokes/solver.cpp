@@ -1,5 +1,7 @@
 #include "solver.h"
 
+int SOLVE_STEPS = 2;
+
 void addSource(int NW, int NH, float* x, float* source, float dt) {
 	int size = (NW + 2) * (NH + 2);
 	#pragma omp parallel for
@@ -33,7 +35,7 @@ void setBoundary(int NW, int NH, int b, float* x) {
 
 void linearSolve(int NW, int NH, int b, float* x, float* x0, float a, float c) {
 	#pragma omp parallel for
-	for (int solveIteration = 0 ; solveIteration < 30; solveIteration++) {
+	for (int solveIteration = 0 ; solveIteration < SOLVE_STEPS; solveIteration++) {
     for (int i = 1 ; i <= NW; i++) {
       for (int j = 1 ; j <= NH; j++) {
         x[IX(i, j)] = (x0[IX(i, j)] + a * (x[IX(i - 1, j)] + x[IX(i + 1, j)] + x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;

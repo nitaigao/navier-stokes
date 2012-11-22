@@ -57,6 +57,11 @@ static float* colorVertexArray = 0;
 static unsigned int vertexSize = 0;
 static unsigned int colorSize = 0;
 
+static BYTE* imageData = NULL;
+
+static int size = 0;
+static unsigned int bpp = 0;
+
 enum ColorMode {
   RED,
   GREEN,
@@ -94,37 +99,37 @@ void input() {
   
   float speed = -1.0f;
   
-  if (glfwGetKey('W') == GLFW_PRESS) {
+  if (glfwGetKey(GLFW_KEY_UP) == GLFW_PRESS) {
     forward += -speed * dt;
   }
   
-  if (glfwGetKey('S') == GLFW_PRESS) {
+  if (glfwGetKey(GLFW_KEY_DOWN) == GLFW_PRESS) {
     forward -= -speed * dt;
   }
   
-  if (glfwGetKey('A') == GLFW_PRESS) {
+  if (glfwGetKey(GLFW_KEY_LEFT) == GLFW_PRESS) {
     right -= speed * dt;
   }
   
-  if (glfwGetKey('D') == GLFW_PRESS) {
+  if (glfwGetKey(GLFW_KEY_RIGHT) == GLFW_PRESS) {
     right += speed * dt;
   }
   
-  if (glfwGetKey('E') == GLFW_PRESS) {
-    up += speed * dt;
-  }
-  
-  if (glfwGetKey('Q') == GLFW_PRESS) {
-    up -= speed * dt;
-  }
-
-  if (glfwGetKey(GLFW_KEY_LEFT)) {
-    yRotation -= speed * dt * dt;
-  }
-  
-  if (glfwGetKey(GLFW_KEY_RIGHT)) {
-    yRotation += speed * dt * dt;
-  }
+//   if (glfwGetKey('E') == GLFW_PRESS) {
+//     up += speed * dt;
+//   }
+//   
+//   if (glfwGetKey('Q') == GLFW_PRESS) {
+//     up -= speed * dt;
+//   }
+// 
+//   if (glfwGetKey(GLFW_KEY_LEFT)) {
+//     yRotation -= speed * dt * dt;
+//   }
+//   
+//   if (glfwGetKey(GLFW_KEY_RIGHT)) {
+//     yRotation += speed * dt * dt;
+//   }
 
 	unsigned int size = (NW+2)*(NH+2);
 
@@ -314,66 +319,6 @@ GLuint createShaderProgram() {
   return shaderProgram;
 }
 
-void keyCallback(int keyCode, int action) {
-  if (keyCode == 'M' && action == GLFW_PRESS) {
-    drawingDensity = !drawingDensity;
-  }
-
-  if (glfwGetKey('V') && action == GLFW_PRESS) {
-    if (visc == 0.0f) {
-      visc = 0.00001f;
-    } else 
-    if (visc == 0.00001f) {
-      visc = 0.0001f;
-    } else 
-    if (visc == 0.0001f) {
-      visc = 0.001f;
-    } else
-    if (visc == 0.001f) {
-      visc = 0.01f;
-    } else
-    if (visc == 0.01f) {
-      visc = 0.1f;
-    } else
-    if (visc == 0.1f) {
-      visc = 0.0f;
-    }
-
-    printf("viscosity %f\n", visc);
-  }
-
-  if (glfwGetKey('F') && action == GLFW_PRESS) {
-    if (force == 3.0f) {
-      force = 0.01f;
-    } else
-    if (force == 0.01f) {
-      force = 0.1f;
-    } else
-    if (force == 0.1f) {
-      force = 1.0f;
-    } else 
-      if (force == 1.0f) {
-      force = 2.0f;
-    }
-    if (force == 2.0f) {
-      force = 3.0f;
-    }
-
-    printf("force %f\n", force);
-  }
-
-  if (keyCode == 'B' && action == GLFW_PRESS) {
-    colorMode++;
-    if (colorMode == COLOR_MODE_MAX) {
-      colorMode = 0;
-    }
-  }
-
-  if (keyCode == 'C' && action == GLFW_PRESS) {
-    drawingDensity = !drawingDensity;
-  }
-}
-
 BYTE* LoadTexture(const char* filename, unsigned int* width, unsigned int* height, unsigned int *bpp) {
 	FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(filename, 0);
 	
@@ -395,8 +340,6 @@ BYTE* LoadTexture(const char* filename, unsigned int* width, unsigned int* heigh
 		return 0;
 	}
 
-	//dib = FreeImage_ConvertTo24Bits(dib);
-
 	unsigned int pitch = FreeImage_GetPitch(dib);
 
 	*bpp = FreeImage_GetBPP(dib);
@@ -417,10 +360,162 @@ BYTE* LoadTexture(const char* filename, unsigned int* width, unsigned int* heigh
 	return bits;
 }
 
+void clear() {
+	unsigned int size = (NW+2)*(NH+2);
+
+	memset(dens_prev, 0, sizeof(float) * size);
+	memset(v_prev, 0, sizeof(float) * size);
+	memset(u_prev, 0, sizeof(float) * size);
+
+	memset(color_r_prev, 0, sizeof(float) * size);
+	memset(color_r_u, 0, sizeof(float) * size);
+	memset(color_r_v, 0, sizeof(float) * size);
+	memset(color_r_u_prev, 0, sizeof(float) * size);
+	memset(color_r_v_prev, 0, sizeof(float) * size);
+
+	memset(color_b_prev, 0, sizeof(float) * size);
+	memset(color_b_u, 0, sizeof(float) * size);
+	memset(color_b_v, 0, sizeof(float) * size);
+	memset(color_b_u_prev, 0, sizeof(float) * size);
+	memset(color_b_v_prev, 0, sizeof(float) * size);
+
+	memset(color_g_u, 0, sizeof(float) * size);
+	memset(color_g_v, 0, sizeof(float) * size);
+	memset(color_g_prev, 0, sizeof(float) * size);
+	memset(color_g_u_prev, 0, sizeof(float) * size);
+	memset(color_g_v_prev, 0, sizeof(float) * size);
+
+	for (unsigned int i = 0; i < size; i++) {
+		color_r[i] = 0.0f;
+		color_g[i] = 0.0f;
+		color_b[i] = 0.0f;
+	}
+
+	if (imageData != NULL) {
+		for (unsigned int i = 0; i < size; i++) {
+			int components = bpp / 8.0f;
+			BYTE b = imageData[0+(i*components)];
+			BYTE g = imageData[1+(i*components)];
+			BYTE r = imageData[2+(i*components)];
+
+			color_r[i] = r / 255.0f;
+			color_g[i] = g / 255.0f;
+			color_b[i] = b / 255.0f;
+		}
+	}
+}
+
+void printHelp() {
+	printf("----------------\n");
+	printf("v - Change Viscosity\n");
+	printf("f - Change Force\n");
+	printf("t - Change Solve Steps\n");
+	printf("c - Clear Forces and Reset\n");
+	printf("h - Print Help\n");
+	printf("b - Change Right Click Color\n");
+	printf("----------------\n");
+	printf("esc - Quit\n");
+	printf("----------------\n");
+	printf("left click - Move Velocity\n");
+	printf("right click - Add Density\n");
+	printf("----------------\n");
+}
+
+void keyCallback(int keyCode, int action) {
+	if (keyCode == 'M' && action == GLFW_PRESS) {
+		drawingDensity = !drawingDensity;
+	}
+
+	if (glfwGetKey('V') && action == GLFW_PRESS) {
+		if (visc == 0.0f) {
+			visc = 0.00001f;
+		} else 
+		if (visc == 0.00001f) {
+			visc = 0.0001f;
+		} else 
+		if (visc == 0.0001f) {
+			visc = 0.001f;
+		} else
+		if (visc == 0.001f) {
+			visc = 0.01f;
+		} else
+		if (visc == 0.01f) {
+			visc = 0.1f;
+		} else
+		if (visc == 0.1f) {
+			visc = 0.0f;
+		}
+
+		printf("viscosity %f\n", visc);
+	}
+
+	if (glfwGetKey('F') && action == GLFW_PRESS) {
+		if (force == 3.0f) {
+			force = 0.01f;
+		} else
+		if (force == 0.01f) {
+			force = 0.1f;
+		} else
+		if (force == 0.1f) {
+			force = 1.0f;
+		} else 
+		if (force == 1.0f) {
+			force = 2.0f;
+		}
+		if (force == 2.0f) {
+			force = 3.0f;
+		}
+
+		printf("force %f\n", force);
+	}
+
+	if (keyCode == 'B' && action == GLFW_PRESS) {
+		colorMode++;
+		if (colorMode == COLOR_MODE_MAX) {
+			colorMode = 0;
+		}
+
+		if (colorMode == 0) {
+			printf("color mode is RED\n");
+		}
+
+		if (colorMode == 1) {
+			printf("color mode is GREEN\n");
+		}
+
+		if (colorMode == 2) {
+			printf("color mode is BLUE\n");
+		}
+	}
+
+	if (keyCode == 'S' && action == GLFW_PRESS) {
+		SOLVE_STEPS += 2;
+		if (SOLVE_STEPS >= 12) {
+			SOLVE_STEPS = 2;
+		}
+		printf("solve steps %d\n", SOLVE_STEPS);
+	}
+
+	if (keyCode == 'C' && action == GLFW_PRESS) {
+		clear();
+		printf("clearing\n", force);
+	}
+
+	if (keyCode == 'H' && action == GLFW_PRESS) {
+		printHelp();
+	}
+}
 
 int main(int argc, const char * argv[]) {
 
-  int gridSize = 200;
+// 	if (argc < 2) {
+// 		printf("You need to drag a png onto the executable icon\n");
+// 		printf("Press any key to quit\n");
+// 		std::cin.get();
+// 		return 0;
+// 	}
+
+  int gridSize = 150;
 
 	NW = gridSize;
 	NH = gridSize;
@@ -433,8 +528,10 @@ int main(int argc, const char * argv[]) {
   printf("%s\n", argv[1]);
   printf("viscosity %f\n", visc);
   printf("force %f\n", force);
-  
-  int size = (NW+2)*(NH+2);//*(N+2); // cube
+ 
+	printHelp();
+
+  size = (NW+2)*(NH+2);//*(N+2); // cube
   
 	u = (float *)malloc(size * sizeof(float));
 	memset(u, 0, size * sizeof(float));
@@ -517,31 +614,28 @@ int main(int argc, const char * argv[]) {
   
   GLboolean running;
 
-	FreeImage_Initialise(true);
+	clear();
 
-	unsigned int width, height, bpp = 0;
-	BYTE* imageData = LoadTexture(argv[1], &width, &height, &bpp);
+	if (argc > 1) {
 
-  for (unsigned int i = 0; i < size; i++) {
-		//dens[i] = 1.0f;
+		FreeImage_Initialise(true);
 
-		int components = bpp / 8.0f;
-		BYTE b = imageData[0+(i*components)];
-		BYTE g = imageData[1+(i*components)];
-		BYTE r = imageData[2+(i*components)];
-		//BYTE a = imageData[3+(i*components)];
-		
-		color_r[i] = r / 255.0f;
-		color_g[i] = g / 255.0f;
-		color_b[i] = b / 255.0f;
+		unsigned int width, height = 0;
+		imageData = LoadTexture(argv[1], &width, &height, &bpp);
 
-//     if (i < (float)size / 2.0f) {
-//       
-//       color_r[i] = 126/255.0f;
-//       color_g[i] = 11/255.0f;
-//       color_b[i] = 128/255.0f;
-//     }
-  }
+
+		for (unsigned int i = 0; i < size; i++) {
+			int components = bpp / 8.0f;
+			BYTE b = imageData[0+(i*components)];
+			BYTE g = imageData[1+(i*components)];
+			BYTE r = imageData[2+(i*components)];
+			
+			color_r[i] = r / 255.0f;
+			color_g[i] = g / 255.0f;
+			color_b[i] = b / 255.0f;
+		}
+
+	}
 
   // Initialize GLFW
   if(!glfwInit()) {
@@ -564,7 +658,7 @@ int main(int argc, const char * argv[]) {
   
   glfwSetKeyCallback(keyCallback);
   
-  glfwSetWindowTitle("Navier Stokes");
+  glfwSetWindowTitle("Fluid Simulation - Navier Stokes");
   
   glfwSwapInterval(1);
   
@@ -658,7 +752,7 @@ int main(int argc, const char * argv[]) {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  forward = -1.0f;
+  forward = -2.0f;
   
   running = GL_TRUE;
 

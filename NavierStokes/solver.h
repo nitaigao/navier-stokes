@@ -7,4 +7,6 @@
 void stepDensity(int NW, int NH, float* x, float* x0, float* u, float* v, float diff, float dt);
 void stepVelocity(int NW, int NH, float* u, float* v, float* u0, float* v0, float visc, float dt);
 
+extern int SOLVE_STEPS;
+
 #endif
