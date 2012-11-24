@@ -18,7 +18,7 @@ void SolverCL::init(size_t bufferSize) {
   // Connect to a compute device
   //
   cl_uint deviceCount = 0;
-  err = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_CPU, 1, &device_id, &deviceCount);
+  err = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_CPU, 1, &device_id, &deviceCount);
   if (err != CL_SUCCESS)
   {
     printf("Error: Failed to create a device group!\n");

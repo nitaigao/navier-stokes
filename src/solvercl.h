@@ -8,6 +8,7 @@
 #elif defined(_WIN32)
 #include <CL/cl.h>
 #else
+#include <CL/cl.h>
 #endif
 
 class SolverCL {
