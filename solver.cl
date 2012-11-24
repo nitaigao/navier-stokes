@@ -89,6 +89,29 @@ void advect(int NW, int NH, int b, __global float* d, __global float* d0, __glob
   setBoundary(NW, NH, b, d);
 }
 
+void project(int NW, int NH, __global float* u, __global float* v, __global float* p, __global float* div) {
+  for (int i = 1 ; i <= NW; i++) {
+    for (int j = 1 ; j <= NH; j++) {
+      div[IX(i,j)] = -0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)]-v[IX(i, j - 1)]) / NW;
+      p[IX(i, j)] = 0;
+    }
+  }
+  
+  setBoundary(NW, NH, 0, div);
+  setBoundary(NW, NH, 0, p);
+  
+  linearSolve(NW, NH, 0, p, div, 1, 4);
+  
+  for (int i = 1 ; i <= NW; i++) {
+    for (int j = 1 ; j <= NH; j++) {
+      u[IX(i,j)] -= 0.5f * NW * (p[IX(i + 1, j)] - p[IX(i - 1,j)]);
+      v[IX(i,j)] -= 0.5f * NH * (p[IX(i, j + 1)] - p[IX(i, j - 1)]);
+    }
+  }
+  setBoundary(NW, NH, 1, u); 
+  setBoundary(NW, NH, 2, v);
+}
+
 __kernel void stepDensity(
   const unsigned int NW, 
   const unsigned int NH, 
@@ -104,4 +127,32 @@ __kernel void stepDensity(
   diffuse(NW, NH, 0, v, u, diff, dt);
   // SWAP(v, u);
   advect(NW, NH, 0, u, v, u_prev, v_prev, dt); 
+}
+
+__kernel void stepVelocity(
+  const unsigned int NW, 
+  const unsigned int NH, 
+  __global float* u, 
+  __global float* v, 
+  __global float* u_prev, 
+  __global float* v_prev, 
+  const float visc, 
+  const float dt) {
+  addSource(NW, NH, u, u_prev, dt);
+  addSource(NW, NH, v, v_prev, dt);
+  
+  SWAP(u_prev, u);
+  diffuse(NW, NH, 1, u, u_prev, visc, dt);
+  
+  SWAP(v_prev, v);
+  diffuse(NW, NH, 2, v, v_prev, visc, dt);
+  
+  project(NW, NH, u, v, u_prev, v_prev);
+  SWAP(u_prev, u);
+  SWAP(v_prev, v);
+  
+  advect(NW, NH, 1, u, u_prev, u_prev, v_prev, dt);
+  advect(NW, NH, 2, v, v_prev, u_prev, v_prev, dt);
+
+  project(NW, NH, u, v, u_prev, v_prev);
 }

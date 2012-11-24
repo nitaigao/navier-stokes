@@ -20,8 +20,8 @@ public:
   
 public:
   
-  void stepDensity(int NW, int NH, float* x, float* x0, float* u, float* v, float diff, float dt, size_t bufferSize);
-  void stepVelocity(int NW, int NH, float* u, float* v, float* u0, float* v0, float visc, float dt, size_t bufferSize);
+  void stepDensity(int NW, int NH, float* u, float* v, float* u_prev, float* v_prev, float diff, float dt, size_t bufferSize);
+  void stepVelocity(int NW, int NH, float* u, float* v, float* u_prev, float* v_prev, float visc, float dt, size_t bufferSize);
 
   
 private:
@@ -34,8 +34,11 @@ private:
   cl_device_id device_id;
   cl_context context;
   cl_command_queue commands;
-  cl_program program;
-  cl_kernel kernel;
+  cl_program density_program;
+  cl_kernel density_kernel;
+  
+  cl_program velocity_program;
+  cl_kernel velocity_kernel;
   
   cl_mem u_mem;
   cl_mem v_mem;

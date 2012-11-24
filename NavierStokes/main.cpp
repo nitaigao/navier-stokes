@@ -183,15 +183,14 @@ void input() {
 }
 
 void update() {
-  stepVelocity(NW, NH, color_r_u, color_r_v, color_r_u_prev, color_r_v_prev, visc, dt);
+  solverCL.stepVelocity(NW, NH, color_r_u, color_r_v, color_r_u_prev, color_r_v_prev, visc, dt, size);
   solverCL.stepDensity(NW, NH, color_r, color_r_prev, color_r_u, color_r_v, diff, dt, size);
-  //stepDensity(NW, NH, color_r, color_r_prev, color_r_u, color_r_v, diff, dt, size);
 
-//  stepVelocity(NW, NH, color_g_u, color_g_v, color_g_u_prev, color_g_v_prev, visc, dt);
-//  solverCL.stepDensity(NW, NH, color_g, color_g_prev, color_g_u, color_g_v, diff, dt, size);
-//
-//  stepVelocity(NW, NH, color_b_u, color_b_v, color_b_u_prev, color_b_v_prev, visc, dt);
-//  solverCL.stepDensity(NW, NH, color_b, color_b_prev, color_b_u, color_b_v, diff, dt, size);
+  solverCL.stepVelocity(NW, NH, color_g_u, color_g_v, color_g_u_prev, color_g_v_prev, visc, dt, size);
+  solverCL.stepDensity(NW, NH, color_g, color_g_prev, color_g_u, color_g_v, diff, dt, size);
+
+  solverCL.stepVelocity(NW, NH, color_b_u, color_b_v, color_b_u_prev, color_b_v_prev, visc, dt, size);
+  solverCL.stepDensity(NW, NH, color_b, color_b_prev, color_b_u, color_b_v, diff, dt, size);
 }
 
 void drawVelocity() {
