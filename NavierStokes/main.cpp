@@ -1,5 +1,4 @@
 #if defined(__APPLE__)
-//  #include <OpenGL/OpenGL.h>
   #include <GL/glew.h>
 
 #undef glGenVertexArrays
@@ -34,6 +33,9 @@
 #include <glm/gtc/type_ptr.hpp> //value_ptr
 
 #include "solver.h"
+#include "solvercl.h"
+
+#include "file2string.h"
 
 static int WINDOW_WIDTH = 1280;
 static int WINDOW_HEIGHT = 800;
@@ -69,6 +71,8 @@ static BYTE* imageData = NULL;
 
 static int size = 0;
 static unsigned int bpp = 0;
+
+static SolverCL solverCL;
 
 enum ColorMode {
   RED,
@@ -180,13 +184,13 @@ void input() {
 
 void update() {
   stepVelocity(NW, NH, color_r_u, color_r_v, color_r_u_prev, color_r_v_prev, visc, dt);
-  stepDensity(NW, NH, color_r, color_r_prev, color_r_u, color_r_v, diff, dt);
+  solverCL.stepDensity(NW, NH, color_r, color_r_prev, color_r_u, color_r_v, diff, dt, size);
 
-  stepVelocity(NW, NH, color_g_u, color_g_v, color_g_u_prev, color_g_v_prev, visc, dt);
-  stepDensity(NW, NH, color_g, color_g_prev, color_g_u, color_g_v, diff, dt);
-
-  stepVelocity(NW, NH, color_b_u, color_b_v, color_b_u_prev, color_b_v_prev, visc, dt);
-  stepDensity(NW, NH, color_b, color_b_prev, color_b_u, color_b_v, diff, dt);
+//  stepVelocity(NW, NH, color_g_u, color_g_v, color_g_u_prev, color_g_v_prev, visc, dt);
+//  solverCL.stepDensity(NW, NH, color_g, color_g_prev, color_g_u, color_g_v, diff, dt, size);
+//
+//  stepVelocity(NW, NH, color_b_u, color_b_v, color_b_u_prev, color_b_v_prev, visc, dt);
+//  solverCL.stepDensity(NW, NH, color_b, color_b_prev, color_b_u, color_b_v, diff, dt, size);
 }
 
 void drawVelocity() {
@@ -250,13 +254,6 @@ void render() {
   
   if (drawingDensity) drawDensity();
   else drawVelocity();
-}
-
-std::string file2string(const std::string& filePath) {
-  std::ifstream fileStream(filePath.c_str());
-  std::stringstream textStream;
-  textStream << fileStream.rdbuf();
-  return textStream.str();
 }
 
 void printLog(GLuint obj) {
@@ -497,6 +494,8 @@ int main(int argc, const char * argv[]) {
 	printHelp();
 
   size = (NW+2)*(NH+2);//*(N+2); // cube
+  
+  solverCL.init(size);
   
 	u = (float *)malloc(size * sizeof(float));
 	v = (float *)malloc(size * sizeof(float));

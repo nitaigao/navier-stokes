@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		4C2618151660E0C500DDAFEB /* solver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2618131660DFBC00DDAFEB /* solver.cpp */; };
+		4C2618181660E52500DDAFEB /* solvercl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2618171660E52500DDAFEB /* solvercl.cpp */; };
+		4C26181A1660F35900DDAFEB /* OpenCL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C2618191660F35900DDAFEB /* OpenCL.framework */; };
+		4C26181D1660FF4300DDAFEB /* file2string.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C26181C1660FF4300DDAFEB /* file2string.cpp */; };
 		4CFF3645164E7C8E001C2945 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CFF3644164E7C8E001C2945 /* main.cpp */; };
 		4CFF3647164E7C8E001C2945 /* NavierStokes.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4CFF3646164E7C8E001C2945 /* NavierStokes.1 */; };
 		4CFF3652164E7D2C001C2945 /* libglfw.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CFF3651164E7D2C001C2945 /* libglfw.a */; };
@@ -48,6 +51,11 @@
 /* Begin PBXFileReference section */
 		4C2618131660DFBC00DDAFEB /* solver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = solver.cpp; sourceTree = "<group>"; };
 		4C2618141660DFBC00DDAFEB /* solver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = solver.h; sourceTree = "<group>"; };
+		4C2618161660E4F800DDAFEB /* solvercl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = solvercl.h; sourceTree = "<group>"; };
+		4C2618171660E52500DDAFEB /* solvercl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = solvercl.cpp; sourceTree = "<group>"; };
+		4C2618191660F35900DDAFEB /* OpenCL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenCL.framework; path = System/Library/Frameworks/OpenCL.framework; sourceTree = SDKROOT; };
+		4C26181B1660FEFF00DDAFEB /* file2string.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = file2string.h; sourceTree = "<group>"; };
+		4C26181C1660FF4300DDAFEB /* file2string.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = file2string.cpp; sourceTree = "<group>"; };
 		4CFF3640164E7C8E001C2945 /* NavierStokes */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = NavierStokes; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CFF3644164E7C8E001C2945 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		4CFF3646164E7C8E001C2945 /* NavierStokes.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = NavierStokes.1; sourceTree = "<group>"; };
@@ -67,6 +75,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4C26181A1660F35900DDAFEB /* OpenCL.framework in Frameworks */,
 				4CFF365F164E7F05001C2945 /* OpenGL.framework in Frameworks */,
 				4CFF365D164E7EFD001C2945 /* AppKit.framework in Frameworks */,
 				4CFF365B164E7EEF001C2945 /* IOKit.framework in Frameworks */,
@@ -105,6 +114,10 @@
 				4C2618141660DFBC00DDAFEB /* solver.h */,
 				4CFF3644164E7C8E001C2945 /* main.cpp */,
 				4CFF3646164E7C8E001C2945 /* NavierStokes.1 */,
+				4C2618161660E4F800DDAFEB /* solvercl.h */,
+				4C2618171660E52500DDAFEB /* solvercl.cpp */,
+				4C26181B1660FEFF00DDAFEB /* file2string.h */,
+				4C26181C1660FF4300DDAFEB /* file2string.cpp */,
 			);
 			path = NavierStokes;
 			sourceTree = "<group>";
@@ -112,6 +125,7 @@
 		4CFF3660164E86A4001C2945 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4C2618191660F35900DDAFEB /* OpenCL.framework */,
 				4CFF365E164E7F05001C2945 /* OpenGL.framework */,
 				4CFF365C164E7EFD001C2945 /* AppKit.framework */,
 				4CFF365A164E7EEF001C2945 /* IOKit.framework */,
@@ -186,6 +200,8 @@
 			files = (
 				4CFF3645164E7C8E001C2945 /* main.cpp in Sources */,
 				4C2618151660E0C500DDAFEB /* solver.cpp in Sources */,
+				4C2618181660E52500DDAFEB /* solvercl.cpp in Sources */,
+				4C26181D1660FF4300DDAFEB /* file2string.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

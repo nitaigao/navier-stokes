@@ -8,11 +8,11 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "NavierStokes/main.cpp"
-         timestampString = "375448231.711131"
+         timestampString = "375456248.419658"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "326"
-         endingLineNumber = "326"
+         startingLineNumber = "301"
+         endingLineNumber = "301"
          landmarkName = "createShaderProgram()"
          landmarkType = "7">
       </FileBreakpoint>
@@ -21,13 +21,39 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "NavierStokes/main.cpp"
-         timestampString = "375448231.711131"
+         timestampString = "375456248.419658"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "325"
-         endingLineNumber = "325"
+         startingLineNumber = "300"
+         endingLineNumber = "300"
          landmarkName = "createShaderProgram()"
          landmarkType = "7">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "Yes"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "NavierStokes/solver.cpp"
+         timestampString = "375463931.836794"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "130"
+         endingLineNumber = "130"
+         landmarkName = "stepDensity(int NW, int NH, float* u, float* v, float* u_prev, float* v_prev, float diff, float dt, unsigned int bufferSize)"
+         landmarkType = "7">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "Yes"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "NavierStokes/solvercl.cpp"
+         timestampString = "375464265.963612"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "242"
+         endingLineNumber = "242"
+         landmarkName = "SolverCL::stepDensity(int NW, int NH, float* u, float* v, float* u_prev, float* v_prev, float diff, float dt, size_t bufferSize)"
+         landmarkType = "5">
       </FileBreakpoint>
    </FileBreakpoints>
 </Bucket>

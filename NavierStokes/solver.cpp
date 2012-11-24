@@ -1,25 +1,25 @@
 #include "solver.h"
 
+#include "file2string.h"
+
 int SOLVE_STEPS = 2;
 
 void addSource(int NW, int NH, float* x, float* source, float dt) {
 	int size = (NW + 2) * (NH + 2);
-	#pragma omp parallel for
 	for (int i = 0 ; i < size ; i++) x[i] += dt * source[i];
 }
 
 void setBoundary(int NW, int NH, int b, float* x) {
 	// can be optimized into 1 for loop if we are using a square grid
-	#pragma omp parallel for
 	for (int i = 1 ; i <= NH; i++) {
 		// along the left wall
 		x[IX(0,    i)]        = b == 1 ? -x[IX(1, i)]  : x[IX(1, i)];
 		
 		// along the right wall
 		x[IX(NW + 1, i)]      = b == 1 ? -x[IX(NW, i)] : x[IX(NW, i)];
-// 	}
-// 
-// 	for (int i = 1 ; i <= NW; i++) {
+ 	}
+ 
+ 	for (int i = 1 ; i <= NW; i++) {
 		// along the top wall
 		x[IX(i,    0)]      = b == 2 ? -x[IX(i, 1)]  : x[IX(i, 1)];
 		
@@ -34,7 +34,6 @@ void setBoundary(int NW, int NH, int b, float* x) {
 }
 
 void linearSolve(int NW, int NH, int b, float* x, float* x0, float a, float c) {
-	#pragma omp parallel for
 	for (int solveIteration = 0 ; solveIteration < SOLVE_STEPS; solveIteration++) {
     for (int i = 1 ; i <= NW; i++) {
       for (int j = 1 ; j <= NH; j++) {
@@ -53,7 +52,6 @@ void diffuse(int NW, int NH, int b, float* x, float* x0, float diff, float dt) {
 void advect(int NW, int NH, int b, float* d, float* d0, float* u, float* v, float dt) {
 	float dt0 = dt * NW;
 
-	#pragma omp parallel for
   for (int i = 1; i <= NW; i++) {
     for (int j = 1; j <= NH; j++) {
       float x = i - dt0 * u[IX(i,j)];
@@ -93,7 +91,6 @@ void advect(int NW, int NH, int b, float* d, float* d0, float* u, float* v, floa
 }
 
 void project(int NW, int NH, float* u, float* v, float* p, float* div) {
-	#pragma omp parallel for
   for (int i = 1 ; i <= NW; i++) {
     for (int j = 1 ; j <= NH; j++) {
       div[IX(i,j)] = -0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)]-v[IX(i, j - 1)]) / NW;
@@ -106,7 +103,6 @@ void project(int NW, int NH, float* u, float* v, float* p, float* div) {
   
 	linearSolve(NW, NH, 0, p, div, 1, 4);
   
-	#pragma omp parallel for
   for (int i = 1 ; i <= NW; i++) {
     for (int j = 1 ; j <= NH; j++) {
       u[IX(i,j)] -= 0.5f * NW * (p[IX(i + 1, j)] - p[IX(i - 1,j)]);
@@ -117,31 +113,42 @@ void project(int NW, int NH, float* u, float* v, float* p, float* div) {
 	setBoundary(NW, NH, 2, v);
 }
 
-void stepDensity(int NW, int NH, float* x, float* x0, float* u, float* v, float diff, float dt) {
-	addSource(NW, NH, x, x0, dt);
-	SWAP(x0, x);
-  diffuse(NW, NH, 0, x, x0, diff, dt);
-	SWAP(x0, x);
-  advect(NW, NH, 0, x, x0, u, v, dt);
+void stepDensity(int NW, int NH, float* u, float* v, float* u_prev, float* v_prev, float diff, float dt, unsigned int bufferSize) {
+  
+  for (int i = 0; i < bufferSize; i++) {
+    printf("%f\n", u[i]);
+  }
+  
+	addSource(NW, NH, u, v, dt);
+  
+  printf("----------------\n");
+  
+  for (int i = 0; i < bufferSize; i++) {
+    printf("%f\n", u[i]);
+  }
+	//SWAP(v, u);
+  diffuse(NW, NH, 0, v, u, diff, dt);
+	//SWAP(v, u);
+  advect(NW, NH, 0, u, v, u_prev, v_prev, dt);
 }
 
-void stepVelocity(int NW, int NH, float* u, float* v, float* u0, float* v0, float visc, float dt) {
-	addSource(NW, NH, u, u0, dt);
-  addSource(NW, NH, v, v0, dt);
+void stepVelocity(int NW, int NH, float* u, float* v, float* u_prev, float* v_prev, float visc, float dt) {
+	addSource(NW, NH, u, u_prev, dt);
+  addSource(NW, NH, v, v_prev, dt);
   
-	SWAP(u0, u);
-  diffuse(NW, NH, 1, u, u0, visc, dt);
+	SWAP(u_prev, u);
+  diffuse(NW, NH, 1, u, u_prev, visc, dt);
 	
-  SWAP(v0, v);
-  diffuse(NW, NH, 2, v, v0, visc, dt);
+  SWAP(v_prev, v);
+  diffuse(NW, NH, 2, v, v_prev, visc, dt);
 	
-  project(NW, NH, u, v, u0, v0);
-	SWAP(u0, u);
-  SWAP(v0, v);
+  project(NW, NH, u, v, u_prev, v_prev);
+	SWAP(u_prev, u);
+  SWAP(v_prev, v);
   
-	advect(NW, NH, 1, u, u0, u0, v0, dt); 
-	advect(NW, NH, 2, v, v0, u0, v0, dt);
+	advect(NW, NH, 1, u, u_prev, u_prev, v_prev, dt);
+	advect(NW, NH, 2, v, v_prev, u_prev, v_prev, dt);
 
-	project(NW, NH, u, v, u0, v0);
+	project(NW, NH, u, v, u_prev, v_prev);
 }
 
