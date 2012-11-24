@@ -84,8 +84,7 @@ static float yRotation = 0.0f;
 
 int omx, omy;
 
-void addDensity(float* density, int i, int j, float source)
-{
+void addDensity(float* density, int i, int j, float source) {
 	density[IX(i - 1, j)] = source;
 
 	density[IX(i - 1, j - 1)] = source;
@@ -102,8 +101,6 @@ void addDensity(float* density, int i, int j, float source)
 }
 
 void input() {
-  
-  // keys
   
   float speed = -1.0f;
   
@@ -123,22 +120,6 @@ void input() {
     right += speed * dt;
   }
   
-//   if (glfwGetKey('E') == GLFW_PRESS) {
-//     up += speed * dt;
-//   }
-//   
-//   if (glfwGetKey('Q') == GLFW_PRESS) {
-//     up -= speed * dt;
-//   }
-// 
-//   if (glfwGetKey(GLFW_KEY_LEFT)) {
-//     yRotation -= speed * dt * dt;
-//   }
-//   
-//   if (glfwGetKey(GLFW_KEY_RIGHT)) {
-//     yRotation += speed * dt * dt;
-//   }
-
 	unsigned int size = (NW+2)*(NH+2);
 
 	memset(dens_prev, 0, sizeof(float) * size);
@@ -157,9 +138,7 @@ void input() {
 	memset(color_g_u_prev, 0, sizeof(float) * size);
 	memset(color_g_v_prev, 0, sizeof(float) * size);
   
-  // mouse
-	
-  int mx, my; 
+  int mx, my;
   glfwGetMousePos(&mx, &my);
   int i = (int)((mx /(float)WINDOW_WIDTH)*NW+1);
   int j = (int)(((WINDOW_HEIGHT-my) /(float)WINDOW_HEIGHT)*NH+1);
@@ -177,7 +156,6 @@ void input() {
     color_b_u[IX(i,j)] = force * (mx-omx);
     color_b_v[IX(i,j)] = force * (omy-my);
   }
-  
 
   if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) || glfwGetKey('D')) {
 
@@ -330,25 +308,13 @@ GLuint createShaderProgram() {
 BYTE* LoadTexture(const char* filename, unsigned int* width, unsigned int* height, unsigned int *bpp) {
 	FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(filename, 0);
 	
-	if(fif == FIF_UNKNOWN) { 
-		fif = FreeImage_GetFIFFromFilename(filename);
-	}
-	
-	if(fif == FIF_UNKNOWN) {
-		return 0;
-	}
-
+	if(fif == FIF_UNKNOWN) fif = FreeImage_GetFIFFromFilename(filename);
+	if(fif == FIF_UNKNOWN) return 0;
 	
 	FIBITMAP *dib = 0;
-	if(FreeImage_FIFSupportsReading(fif)) {
-		dib = FreeImage_Load(fif, filename);
-	}
+	if(FreeImage_FIFSupportsReading(fif)) dib = FreeImage_Load(fif, filename);
 
-	if(!dib) {
-		return 0;
-	}
-
-	unsigned int pitch = FreeImage_GetPitch(dib);
+	if(!dib) return 0;
 
 	*bpp = FreeImage_GetBPP(dib);
 
@@ -359,9 +325,7 @@ BYTE* LoadTexture(const char* filename, unsigned int* width, unsigned int* heigh
 	*width = FreeImage_GetWidth(scaled);
 	*height = FreeImage_GetHeight(scaled);
 
-	if((bits == 0) || (width == 0) || (height == 0)) {
-		return 0;
-	}
+	if((bits == 0) || (width == 0) || (height == 0)) return 0;
 
 	FreeImage_Unload(dib);
 
@@ -506,7 +470,7 @@ void keyCallback(int keyCode, int action) {
 
 	if (keyCode == 'C' && action == GLFW_PRESS) {
 		clear();
-		printf("clearing\n", force);
+		printf("clearing\n");
 	}
 
 	if (keyCode == 'H' && action == GLFW_PRESS) {
@@ -515,13 +479,6 @@ void keyCallback(int keyCode, int action) {
 }
 
 int main(int argc, const char * argv[]) {
-
-// 	if (argc < 2) {
-// 		printf("You need to drag a png onto the executable icon\n");
-// 		printf("Press any key to quit\n");
-// 		std::cin.get();
-// 		return 0;
-// 	}
 
   int gridSize = 150;
 
@@ -542,83 +499,32 @@ int main(int argc, const char * argv[]) {
   size = (NW+2)*(NH+2);//*(N+2); // cube
   
 	u = (float *)malloc(size * sizeof(float));
-	memset(u, 0, size * sizeof(float));
-
 	v = (float *)malloc(size * sizeof(float));
-	memset(v, 0, size * sizeof(float));
-
 	u_prev = (float *)malloc(size * sizeof(float));
-	memset(u_prev, 0, size * sizeof(float));
-
 	v_prev = (float *)malloc(size * sizeof(float));
-	memset(v_prev, 0, size * sizeof(float));
-
 	dens = (float *)malloc(size * sizeof(float));
-	memset(dens, 0, size * sizeof(float));
-
 	dens_prev	= (float *)malloc(size * sizeof(float));
-	memset(dens_prev, 0, size * sizeof(float));
-
-
-//--
 
   color_r_u = (float *)malloc(size * sizeof(float));
-  memset(color_r_u, 0, size * sizeof(float));
-
   color_r_v = (float *)malloc(size * sizeof(float));
-  memset(color_r_v, 0, size * sizeof(float));
-
   color_r_u_prev = (float *)malloc(size * sizeof(float));
-  memset(color_r_u_prev, 0, size * sizeof(float));
-
   color_r_v_prev = (float *)malloc(size * sizeof(float));
-  memset(color_r_v_prev, 0, size * sizeof(float));
-
   color_r = (float *)malloc(size * sizeof(float));
-  memset(color_r, 0, size * sizeof(float));
-
   color_r_prev = (float *)malloc(size * sizeof(float));
-  memset(color_r_prev, 0, size * sizeof(float));
-
-//--
 
   color_g_u = (float *)malloc(size * sizeof(float));
-  memset(color_g_u, 0, size * sizeof(float));
-
   color_g_v = (float *)malloc(size * sizeof(float));
-  memset(color_g_v, 0, size * sizeof(float));
-
   color_g_u_prev = (float *)malloc(size * sizeof(float));
-  memset(color_g_u_prev, 0, size * sizeof(float));
-
   color_g_v_prev = (float *)malloc(size * sizeof(float));
-  memset(color_g_v_prev, 0, size * sizeof(float));
-
   color_g = (float *)malloc(size * sizeof(float));
-  memset(color_g, 0, size * sizeof(float));
-
   color_g_prev = (float *)malloc(size * sizeof(float));
-  memset(color_g_prev, 0, size * sizeof(float));
-
-  //--
 
   color_b_u = (float *)malloc(size * sizeof(float));
-  memset(color_b_u, 0, size * sizeof(float));
-
   color_b_v = (float *)malloc(size * sizeof(float));
-  memset(color_b_v, 0, size * sizeof(float));
-
   color_b_u_prev = (float *)malloc(size * sizeof(float));
-  memset(color_b_u_prev, 0, size * sizeof(float));
-
   color_b_v_prev = (float *)malloc(size * sizeof(float));
-  memset(color_b_v_prev, 0, size * sizeof(float));
-
   color_b = (float *)malloc(size * sizeof(float));
-  memset(color_b, 0, size * sizeof(float));
-
   color_b_prev = (float *)malloc(size * sizeof(float));
-  memset(color_b_prev, 0, size * sizeof(float));
   
   GLboolean running;
 
@@ -642,21 +548,13 @@ int main(int argc, const char * argv[]) {
 			color_g[i] = g / 255.0f;
 			color_b[i] = b / 255.0f;
 		}
-
 	}
 
-  // Initialize GLFW
   if(!glfwInit()) {
     fprintf( stderr, "Failed to initialize GLFW\n" );
     return EXIT_FAILURE;
   }
-  
-//  glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-//  glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
-//  glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-//  glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
  
-  // Open OpenGL window
   if(!glfwOpenWindow(WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, 0, 0, 0, 0, GLFW_WINDOW)) {
     fprintf(stderr, "Failed to open GLFW window\n");
     glfwTerminate();
@@ -670,9 +568,7 @@ int main(int argc, const char * argv[]) {
   
   
   glfwSetKeyCallback(keyCallback);
-  
   glfwSetWindowTitle("Fluid Simulation - Navier Stokes");
-  
   glfwSwapInterval(1);
   
   GLuint shaderProgram = createShaderProgram();
@@ -718,7 +614,6 @@ int main(int argc, const char * argv[]) {
   glVertexAttribPointer(0, 2, GL_FLOAT, 0, 0, 0);
   glEnableVertexAttribArray(0);
 
-  // this should become a texture read later on
   colorSize = (NW + 1) * (NH + 1) * 4 * 4;
 
   colorVertexArray = (float *)malloc(colorSize * sizeof(float));
@@ -726,8 +621,7 @@ int main(int argc, const char * argv[]) {
 
   unsigned int colorIndex = 0;
 
-    for (float i = 0 ; i <= NW ; i++) {
-    
+  for (float i = 0 ; i <= NW ; i++) {
     for (float j = 0 ; j <= NH ; j++) {
 
       colorVertexArray[colorIndex++] = 0;
@@ -774,7 +668,6 @@ int main(int argc, const char * argv[]) {
     
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
-    
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     
     glUseProgram(shaderProgram);
@@ -792,14 +685,11 @@ int main(int argc, const char * argv[]) {
 
     render();
     
-    // Swap buffers
     glfwSwapBuffers();
     
-    // Check if the ESC key was pressed or the window was closed
     running = !glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED);
   }
   
-  // Close OpenGL window and terminate GLFW
   glfwTerminate();
   
   return 0;
