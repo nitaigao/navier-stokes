@@ -11,3 +11,8 @@
 *.lai
 *.la
 *.a
+
+*.ncb
+*.exe
+Debug
+Release	
