@@ -1,5 +1,13 @@
-#if defined(_APPLE_)
-  #include <OpenGL/OpenGL.h>
+#if defined(__APPLE__)
+//  #include <OpenGL/OpenGL.h>
+  #include <GL/glew.h>
+
+#undef glGenVertexArrays
+#undef glBindVertexArray
+
+#define glGenVertexArrays glGenVertexArraysAPPLE
+#define glBindVertexArray glBindVertexArrayAPPLE
+
 #elif defined(_WIN32)
   #include <windows.h>
   
@@ -642,6 +650,11 @@ int main(int argc, const char * argv[]) {
     fprintf( stderr, "Failed to initialize GLFW\n" );
     return EXIT_FAILURE;
   }
+  
+//  glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
+//  glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
+//  glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+//  glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
  
   // Open OpenGL window
   if(!glfwOpenWindow(WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, 0, 0, 0, 0, GLFW_WINDOW)) {
@@ -714,10 +727,8 @@ int main(int argc, const char * argv[]) {
   unsigned int colorIndex = 0;
 
     for (float i = 0 ; i <= NW ; i++) {
-    float x = (i - 0.5f) * hw - 0.5;
     
     for (float j = 0 ; j <= NH ; j++) {
-      float y = (j - 0.5f) * hh - 0.5;
 
       colorVertexArray[colorIndex++] = 0;
       colorVertexArray[colorIndex++] = 1;

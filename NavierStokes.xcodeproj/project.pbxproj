@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4C2618151660E0C500DDAFEB /* solver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2618131660DFBC00DDAFEB /* solver.cpp */; };
 		4CFF3645164E7C8E001C2945 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CFF3644164E7C8E001C2945 /* main.cpp */; };
 		4CFF3647164E7C8E001C2945 /* NavierStokes.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4CFF3646164E7C8E001C2945 /* NavierStokes.1 */; };
 		4CFF3652164E7D2C001C2945 /* libglfw.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CFF3651164E7D2C001C2945 /* libglfw.a */; };
@@ -18,7 +19,6 @@
 		4CFF365F164E7F05001C2945 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CFF365E164E7F05001C2945 /* OpenGL.framework */; };
 		4CFF3667164E86EE001C2945 /* navierstokes.f.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4CFF3662164E86BF001C2945 /* navierstokes.f.glsl */; };
 		4CFF3668164E86F0001C2945 /* navierstokes.v.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4CFF3663164E86BF001C2945 /* navierstokes.v.glsl */; };
-		4CFF366A164E9A03001C2945 /* solver.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CFF3669164E9A03001C2945 /* solver.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -46,6 +46,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4C2618131660DFBC00DDAFEB /* solver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = solver.cpp; sourceTree = "<group>"; };
+		4C2618141660DFBC00DDAFEB /* solver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = solver.h; sourceTree = "<group>"; };
 		4CFF3640164E7C8E001C2945 /* NavierStokes */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = NavierStokes; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CFF3644164E7C8E001C2945 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		4CFF3646164E7C8E001C2945 /* NavierStokes.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = NavierStokes.1; sourceTree = "<group>"; };
@@ -58,7 +60,6 @@
 		4CFF365E164E7F05001C2945 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		4CFF3662164E86BF001C2945 /* navierstokes.f.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = navierstokes.f.glsl; sourceTree = "<group>"; };
 		4CFF3663164E86BF001C2945 /* navierstokes.v.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = navierstokes.v.glsl; sourceTree = "<group>"; };
-		4CFF3669164E9A03001C2945 /* solver.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = solver.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,9 +101,10 @@
 		4CFF3643164E7C8E001C2945 /* NavierStokes */ = {
 			isa = PBXGroup;
 			children = (
+				4C2618131660DFBC00DDAFEB /* solver.cpp */,
+				4C2618141660DFBC00DDAFEB /* solver.h */,
 				4CFF3644164E7C8E001C2945 /* main.cpp */,
 				4CFF3646164E7C8E001C2945 /* NavierStokes.1 */,
-				4CFF3669164E9A03001C2945 /* solver.c */,
 			);
 			path = NavierStokes;
 			sourceTree = "<group>";
@@ -183,7 +185,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4CFF3645164E7C8E001C2945 /* main.cpp in Sources */,
-				4CFF366A164E9A03001C2945 /* solver.c in Sources */,
+				4C2618151660E0C500DDAFEB /* solver.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -249,6 +251,10 @@
 					.,
 				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				OTHER_LDFLAGS = (
+					"-lFreeImage",
+					"-lGLEW",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -261,6 +267,10 @@
 					.,
 				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				OTHER_LDFLAGS = (
+					"-lFreeImage",
+					"-lGLEW",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
