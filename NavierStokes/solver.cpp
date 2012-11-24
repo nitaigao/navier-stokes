@@ -34,7 +34,7 @@ void setBoundary(int NW, int NH, int b, float* x) {
 }
 
 void linearSolve(int NW, int NH, int b, float* x, float* x0, float a, float c) {
-	for (int solveIteration = 0 ; solveIteration < SOLVE_STEPS; solveIteration++) {
+	for (int solveIteration = 0 ; solveIteration < 2; solveIteration++) {
     for (int i = 1 ; i <= NW; i++) {
       for (int j = 1 ; j <= NH; j++) {
         x[IX(i, j)] = (x0[IX(i, j)] + a * (x[IX(i - 1, j)] + x[IX(i + 1, j)] + x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
@@ -115,19 +115,13 @@ void project(int NW, int NH, float* u, float* v, float* p, float* div) {
 
 void stepDensity(int NW, int NH, float* u, float* v, float* u_prev, float* v_prev, float diff, float dt, unsigned int bufferSize) {
   
-  for (int i = 0; i < bufferSize; i++) {
-    printf("%f\n", u[i]);
-  }
-  
+  printBuffer(u, NW, bufferSize);
 	addSource(NW, NH, u, v, dt);
   
-  printf("----------------\n");
-  
-  for (int i = 0; i < bufferSize; i++) {
-    printf("%f\n", u[i]);
-  }
 	//SWAP(v, u);
   diffuse(NW, NH, 0, v, u, diff, dt);
+
+  printBuffer(u, NW, bufferSize);
 	//SWAP(v, u);
   advect(NW, NH, 0, u, v, u_prev, v_prev, dt);
 }

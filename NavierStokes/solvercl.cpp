@@ -1,7 +1,5 @@
 #include "solvercl.h"
 
-#include <OpenCL/OpenCL.h>
-
 #include <cstdlib>
 #include <cstdio>
 #include <string>
@@ -12,10 +10,15 @@
 
 void SolverCL::init(size_t bufferSize) {
 
+
+  cl_uint numPlatforms = 2;
+  cl_platform_id platforms[2];
+  clGetPlatformIDs(numPlatforms, platforms, NULL);
+
   // Connect to a compute device
   //
   cl_uint deviceCount = 0;
-  err = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_CPU, 1, &device_id, &deviceCount);
+  err = clGetDeviceIDs(platforms[1], CL_DEVICE_TYPE_CPU, 1, &device_id, &deviceCount);
   if (err != CL_SUCCESS)
   {
     printf("Error: Failed to create a device group!\n");
@@ -33,7 +36,7 @@ void SolverCL::init(size_t bufferSize) {
   //
   context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
   if (!context)
-  {
+  {\
     printf("Error: Failed to create a compute context!\n");
     return;
   }
@@ -134,7 +137,7 @@ void SolverCL::stepDensity(int NW, int NH, float* u, float* v, float* u_prev, fl
     exit(1);
   }
 
-    err = clEnqueueWriteBuffer(commands, u_prev_mem, CL_TRUE, 0, sizeof(float) * bufferSize, u_prev, 0, NULL, NULL);
+  err = clEnqueueWriteBuffer(commands, u_prev_mem, CL_TRUE, 0, sizeof(float) * bufferSize, u_prev, 0, NULL, NULL);
   if (err != CL_SUCCESS) {
     printf("Error: Failed to write to source array!\n");
     exit(1);
@@ -146,7 +149,6 @@ void SolverCL::stepDensity(int NW, int NH, float* u, float* v, float* u_prev, fl
     exit(1);
   }
 
-  
   // set arguments
   
   err = 0;
@@ -172,22 +174,11 @@ void SolverCL::stepDensity(int NW, int NH, float* u, float* v, float* u_prev, fl
     printf("Error: Failed to retrieve kernel work group info! %d\n", err);
     exit(1);
   }
+
+  printBuffer(u, NW, bufferSize);
   
-  unsigned int pitch = 0;
-  
-  for (int i = 0; i < bufferSize; i++) {
-    printf("%u ", (unsigned int)(u[i]*255));
-    
-    pitch++;
-    
-    if (pitch == NW + 2) {
-      printf("\n");
-    }
-    
-    pitch = 0;
-  }
-  
-  global = DATA_SIZE;
+  global = 1;
+  local = 1;
   err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
   if (err) {
     printf("Error: Failed to execute kernel!\n");
@@ -230,15 +221,7 @@ void SolverCL::stepDensity(int NW, int NH, float* u, float* v, float* u_prev, fl
   
   clFinish(commands);
   
-  printf("----------------\n");
-  
-//  for (int i = 0; i < bufferSize; i++) {
-//    printf("%f", u[i]);
-//    
-//    if (i % NW + 2) {
-//      printf("\n");
-//    }
-//  }
+  printBuffer(u, NW, bufferSize);
 
 }
 

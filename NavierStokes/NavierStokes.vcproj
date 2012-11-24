@@ -58,7 +58,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="glew32s.lib GLFW.lib opengl32.lib FreeImage.lib"
+				AdditionalDependencies="glew32s.lib GLFW.lib opengl32.lib FreeImage.lib OpenCL.lib"
 				AdditionalLibraryDirectories="&quot;..\glfw-2.7.7.bin.WIN32\lib-msvc90&quot;;&quot;..\glew-1.9.0\lib&quot;;..\FreeImage\Dist"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
@@ -174,11 +174,19 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\file2string.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\main.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\solver.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\solvercl.cpp"
 				>
 			</File>
 		</Filter>
@@ -188,7 +196,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\file2string.h"
+				>
+			</File>
+			<File
 				RelativePath=".\solver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\solvercl.h"
 				>
 			</File>
 		</Filter>

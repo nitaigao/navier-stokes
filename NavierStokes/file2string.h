@@ -5,4 +5,6 @@
 
 std::string file2string(const std::string& filePath);
 
+void printBuffer(float* u, unsigned int NW, unsigned int bufferSize);
+
 #endif

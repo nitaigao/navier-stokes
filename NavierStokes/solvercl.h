@@ -2,8 +2,13 @@
 #define SOLVER_CL_H
 
 #include <cstdlib>
-#include <OpenCL/OpenCL.h>
 
+#ifdef __APPLE__
+#include <OpenCL/OpenCL.h>
+#elif defined(_WIN32)
+#include <CL/cl.h>
+#else
+#endif
 
 class SolverCL {
   

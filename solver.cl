@@ -33,13 +33,13 @@ void setBoundary(int NW, int NH, int b, __global float* x) {
 }
 
 void linearSolve(int NW, int NH, int b, __global float* x, __global float* x0, float a, float c) {
-  for (int solveIteration = 0 ; solveIteration < 2; solveIteration++) {
-    for (int i = 1 ; i <= NW; i++) {
-      for (int j = 1 ; j <= NH; j++) {
-        x[IX(i, j)] = x0[IX(i, j)];//(x0[IX(i, j)] + a * (x[IX(i - 1, j)] + x[IX(i + 1, j)] + x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
+  for (int solveIteration = 0; solveIteration < 2; solveIteration++) {
+    for (int i = 1; i <= NW; i++) {
+      for (int j = 1; j <= NH; j++) {
+        x[IX(i, j)] = (x0[IX(i, j)] + a * (x[IX(i - 1, j)] + x[IX(i + 1, j)] + x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
       }
     }
-    // setBoundary(NW, NH, b, x);
+    setBoundary(NW, NH, b, x);
   }
 }
 
@@ -86,7 +86,7 @@ void advect(int NW, int NH, int b, __global float* d, __global float* d0, __glob
       d[IX(i,j)] = s0 * (t0 * d0[IX(i0,j0)] + t1 * d0[IX(i0,j1)]) + s1 * (t0 * d0[IX(i1,j0)] + t1 * d0[IX(i1,j1)]);
     }
   }
-  //setBoundary(NW, NH, b, d);
+  setBoundary(NW, NH, b, d);
 }
 
 __kernel void stepDensity(
@@ -101,7 +101,7 @@ __kernel void stepDensity(
 
   addSource(NW, NH, u, v, dt);
   // SWAP(v, u);
-  // diffuse(NW, NH, 0, v, u, diff, dt);
+  diffuse(NW, NH, 0, v, u, diff, dt);
   // SWAP(v, u);
-  // advect(NW, NH, 0, u, v, u_prev, v_prev, dt); 
+  advect(NW, NH, 0, u, v, u_prev, v_prev, dt); 
 }

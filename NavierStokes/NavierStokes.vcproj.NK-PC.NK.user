@@ -11,7 +11,7 @@
 			<DebugSettings
 				Command="$(TargetPath)"
 				WorkingDirectory="C:\Users\NK\Development\navier-stokes"
-				CommandArguments="stars.png"
+				CommandArguments="smile.png"
 				Attach="false"
 				DebuggerType="3"
 				Remote="1"
