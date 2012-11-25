@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\;&quot;..\glew-1.9.0\include&quot;;&quot;..\glfw-2.7.7.bin.WIN32\include&quot;;..\FreeImage\Dist"
+				AdditionalIncludeDirectories="..\..\libs;&quot;..\..\libs\glew-1.9.0\include&quot;;&quot;..\..\libs\glfw-2.7.7.bin.WIN32\include&quot;;..\..\libs\FreeImage\Dist"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -59,7 +59,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="glew32s.lib GLFW.lib opengl32.lib FreeImage.lib OpenCL.lib"
-				AdditionalLibraryDirectories="&quot;..\glfw-2.7.7.bin.WIN32\lib-msvc90&quot;;&quot;..\glew-1.9.0\lib&quot;;..\FreeImage\Dist"
+				AdditionalLibraryDirectories="&quot;..\..\libs\glfw-2.7.7.bin.WIN32\lib-msvc90&quot;;&quot;..\..\libs\glew-1.9.0\lib&quot;;..\..\libs\FreeImage\Dist"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -114,7 +114,7 @@
 				Optimization="3"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..\;&quot;..\glew-1.9.0\include&quot;;&quot;..\glfw-2.7.7.bin.WIN32\include&quot;;..\FreeImage\Dist"
+				AdditionalIncludeDirectories="..\..\libs;&quot;..\..\libs\glew-1.9.0\include&quot;;&quot;..\..\libs\glfw-2.7.7.bin.WIN32\include&quot;;..\..\libs\FreeImage\Dist"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				FloatingPointModel="2"
@@ -134,9 +134,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="glew32s.lib GLFW.lib opengl32.lib FreeImage.lib"
-				AdditionalLibraryDirectories="&quot;..\glfw-2.7.7.bin.WIN32\lib-msvc90&quot;;&quot;..\glew-1.9.0\lib&quot;;..\FreeImage\Dist"
-				UACExecutionLevel="1"
+				AdditionalDependencies="glew32s.lib GLFW.lib opengl32.lib FreeImage.lib OpenCL.lib"
+				AdditionalLibraryDirectories="&quot;..\..\libs\glfw-2.7.7.bin.WIN32\lib-msvc90&quot;;&quot;..\..\libs\glew-1.9.0\lib&quot;;..\..\libs\FreeImage\Dist"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -174,19 +173,19 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\file2string.cpp"
+				RelativePath="..\..\src\file2string.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\main.cpp"
+				RelativePath="..\..\src\main.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\solver.cpp"
+				RelativePath="..\..\src\solver.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\solvercl.cpp"
+				RelativePath="..\..\src\solvercl.cpp"
 				>
 			</File>
 		</Filter>
@@ -196,15 +195,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\file2string.h"
+				RelativePath="..\..\src\file2string.h"
 				>
 			</File>
 			<File
-				RelativePath=".\solver.h"
+				RelativePath="..\..\src\solver.h"
 				>
 			</File>
 			<File
-				RelativePath=".\solvercl.h"
+				RelativePath="..\..\src\solvercl.h"
 				>
 			</File>
 		</Filter>
